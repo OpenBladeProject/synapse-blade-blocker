@@ -1,6 +1,6 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-function helper(){const module={exports:{}};vm.runInNewContext(fs.readFileSync(__dirname+'/patched-blades/openblade-device-exclusion.cjs','utf8'),{module,require(name){assert.equal(name,'./blade-device-registry.json');return require('./blade-device-registry.json');}},{timeout:1000});return module.exports;}
+function helper(){const module={exports:{}};vm.runInNewContext(fs.readFileSync(require('./test-root.cjs')+'/patched-blades/openblade-device-exclusion.cjs','utf8'),{module,require(name){assert.equal(name,'./blade-device-registry.json');return require('./blade-device-registry.json');}},{timeout:1000});return module.exports;}
 const guid='A0000000-0000-0000-0000-000000000736';
 const blade={vendorId:5426,productId:736,deviceContainerId:guid};
 test('successful discovery learns exact container before hiding Blade',()=>{const h=helper();assert.equal(h.visibleDevices([blade]).length,0);assert.equal(h.observedBladeDevice({productId:'736',deviceContainerId:'{'+guid.toLowerCase()+'}'}),true);});

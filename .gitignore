@@ -7,3 +7,6 @@ node_modules/
 *.pml
 *.log
 patch-manifest-blades.json
+
+prepared/
+diagnostics/

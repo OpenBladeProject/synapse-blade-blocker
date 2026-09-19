@@ -1,6 +1,6 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),events=require('node:events'),util=require('node:util'),crypto=require('node:crypto');
-const root=__dirname,helper=require('./patched-blades/openblade-device-exclusion.cjs');
+const root=require('./test-root.cjs'),helper=require(require('./test-root.cjs')+'/patched-blades/openblade-device-exclusion.cjs');
 const blade={vendorId:5426,productId:736,path:'\\\\?\\hid#vid_1532&pid_02e0&mi_02#synthetic'};
 const peripheral={vendorId:5426,productId:153,path:'\\\\?\\hid#vid_1532&pid_0099#synthetic'};
 const otherVendor={vendorId:1111,productId:736,path:'\\\\?\\hid#vid_0457&pid_02e0#synthetic'};
@@ -25,7 +25,7 @@ test('HID enumeration filters target only',()=>{const f=hidFixture();const list=
 test('cached target HID path rejected before native binding loads or opens',()=>{const f=hidFixture();assert.throws(()=>new f.hid.HID(blade.path),e=>e.code==='OPENBLADE_DEVICE_EXCLUDED');assert.equal(f.loads(),0);assert.equal(f.opens.length,0);});
 test('target VID/PID constructor rejected before native open',()=>{const f=hidFixture();assert.throws(()=>new f.hid.HID(5426,736,'synthetic'),e=>e.code==='OPENBLADE_DEVICE_EXCLUDED');assert.equal(f.opens.length,0);});
 test('peripheral path and other-vendor constructor retain native API',()=>{const f=hidFixture();const d=new f.hid.HID(peripheral.path);assert.equal(d.sendFeatureReport([1,2,3]),3);new f.hid.HID(1111,736);assert.equal(f.opens.length,2);assert.equal(f.opens[0][0],peripheral.path);});
-test('patched ASAR references exact tested module bytes with valid hashes',()=>{const a=fs.readFileSync(path.join(root,'patched-blades.offline-only.asar')),h=JSON.parse(a.subarray(16,16+a.readUInt32LE(12))),base=8+a.readUInt32LE(4);for(const n of ['openblade-device-exclusion.cjs','node_modules/rz-usb-detect/index.js','node_modules/node-rz-hid/nodehid.js']){let e=h;for(const p of n.split('/'))e=e.files[p];const b=a.subarray(base+Number(e.offset),base+Number(e.offset)+e.size);assert(b.equals(fs.readFileSync(path.join(root,'patched-blades',n))));assert.equal(crypto.createHash('sha256').update(b).digest('hex'),e.integrity.hash);}});
+test('patched ASAR references exact tested module bytes with valid hashes',()=>{const a=fs.readFileSync(path.join(root,'blocked.asar')),h=JSON.parse(a.subarray(16,16+a.readUInt32LE(12))),base=8+a.readUInt32LE(4);for(const n of ['openblade-device-exclusion.cjs','node_modules/rz-usb-detect/index.js','node_modules/node-rz-hid/nodehid.js']){let e=h;for(const p of n.split('/'))e=e.files[p];const b=a.subarray(base+Number(e.offset),base+Number(e.offset)+e.size);assert(b.equals(fs.readFileSync(path.join(root,'patched-blades',n))));assert.equal(crypto.createHash('sha256').update(b).digest('hex'),e.integrity.hash);}});
 
 test('USB wrapper learns container before suppressing enumeration and hotplug',async()=>{
  const first={...blade,deviceContainerId:'D0000000-0000-0000-0000-000000000001'},second={...blade,deviceContainerId:'D0000000-0000-0000-0000-000000000002'};

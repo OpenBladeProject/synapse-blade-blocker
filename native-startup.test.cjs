@@ -13,10 +13,10 @@ test('patched mapping engine still initializes native code before renderer/devic
   '../../../mainSubFunction':{},
   '../../sentry/index':{},
   '../../../lib/filterDriverInstallTracker':{},
-  '../../../../openblade-device-exclusion.cjs':require('./patched-blades/openblade-device-exclusion.cjs')
+  '../../../../openblade-device-exclusion.cjs':require(require('./test-root.cjs')+'/patched-blades/openblade-device-exclusion.cjs')
  };
  const context={module,console:{log(){},warn(){}},process:{platform:'win32'},require(name){if(!Object.hasOwn(allowed,name))throw Error('Forbidden real dependency: '+name);return allowed[name];}};
- vm.runInNewContext(fs.readFileSync(__dirname+'/patched-blades/electron/modules/mapping_engine/win/index.js','utf8'),context,{timeout:1000});
+ vm.runInNewContext(fs.readFileSync(require('./test-root.cjs')+'/patched-blades/electron/modules/mapping_engine/win/index.js','utf8'),context,{timeout:1000});
  const engine=new module.exports.FFIMappingEngine();
  engine.loadLatestDLL=async(file)=>{calls.push({type:'load',file});engine.libFFI={mappingEngineInitialize(callback){calls.push({type:'native-initialize'});callback();}};return true;};
  await engine.initDll('C:/offline-fixture/mapping_engine.dll');

@@ -1,10 +1,12 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict'),{test}=require('node:test');
-const root=__dirname,source=fs.readFileSync(path.join(root,'patched-blades/electron/main.js'),'utf8');
-const policy=require('./patched-blades/openblade-native-exclusion.cjs');
-const anchor='n.handle("electronAction",',start=source.indexOf(anchor)+anchor.length;
+const root=require('./test-root.cjs'),source=fs.readFileSync(path.join(root,'patched-blades/electron/main.js'),'utf8');
+const policy=require(require('./test-root.cjs')+'/patched-blades/openblade-native-exclusion.cjs');
+const anchor=/[A-Za-z_$][\w$]*\.handle\("electronAction",/.exec(source)?.[0];assert(anchor);const start=source.indexOf(anchor)+anchor.length;
 assert(start>=anchor.length);let factory,end=start;
-while((end=source.indexOf('}',end+1))>=0){try{factory=new Function('no','D','obNativeExclusion','return ('+source.slice(start,end+1)+');');break;}catch(e){if(!(e instanceof SyntaxError))throw e;}}
+const nativeAlias=/assertAllowed\("electronAction",[$\w]+,[$\w]+\),([$\w]+)\.callDLL/.exec(source)[1];
+const serviceAliases=['StartService','StopService','GetServiceStatus'].map(action=>new RegExp('case"'+action+'":return obNativeExclusion\\.assertAllowed\\("electronAction",[$\\w]+,[$\\w]+\\),([$\\w]+)\\(([$\\w]+),').exec(source));
+while((end=source.indexOf('}',end+1))>=0){try{factory=new Function(nativeAlias,'D','obNativeExclusion','return ('+source.slice(start,end+1)+');');break;}catch(e){if(!(e instanceof SyntaxError))throw e;}}
 assert(factory);
 const a=fs.readFileSync(path.join(root,'original.asar')),h=JSON.parse(a.subarray(16,16+a.readUInt32LE(12))),entry=h.files.electron.files['constants.js'],offset=8+a.readUInt32LE(4)+Number(entry.offset);
 const match=/module\.exports\.actionEnum=(\{[^}]+\})/.exec(a.subarray(offset,offset+entry.size).toString());assert(match);
