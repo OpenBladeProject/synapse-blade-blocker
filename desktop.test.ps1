@@ -4,25 +4,33 @@ function Assert($Condition,[string]$Message){if(!$Condition){throw $Message}}
 function Throws([scriptblock]$Action,[string]$Message){$failed=$false;try{& $Action | Out-Null}catch{$failed=$true};Assert $failed $Message}
 
 # Each action must require fresh, usable input; stale marker data never grants restore.
-$a=Get-DesktopActions 'Original' $false $true $true $true $true $false
+$a=Get-DesktopActions 'Original' $false $true $true $true $true $false 'NoPatchDetected'
 Assert ($a.CanPatch -and !$a.CanRestore) 'Verified original should permit Patch only'
-$a=Get-DesktopActions 'Experimental blocker applied' $true $true $false $false $true $false
+$a=Get-DesktopActions 'Experimental blocker applied' $true $true $false $false $true $false 'NoPatchDetected'
 Assert ($a.CanRestore -and !$a.CanPatch) 'Restore must work without Node or the patched source'
-$a=Get-DesktopActions 'Experimental blocker applied' $true $false $true $true $true $false
+$a=Get-DesktopActions 'Experimental blocker applied' $true $false $true $true $true $false 'NoPatchDetected'
 Assert (!$a.CanRestore) 'Missing original enabled Restore'
-$a=Get-DesktopActions 'No matching preparation' $true $false $false $true $true $false
+$a=Get-DesktopActions 'No matching preparation' $true $false $false $true $true $false 'NoPatchDetected'
 Assert (!$a.CanPrepare -and !$a.CanPatch -and !$a.CanRestore) 'Applied marker without original permitted mutation'
-$a=Get-DesktopActions 'No matching preparation' $false $false $false $true $true $true
+$a=Get-DesktopActions 'No matching preparation' $false $false $false $true $true $true 'NoPatchDetected'
 Assert (!$a.CanPrepare -and !$a.CanPatch) 'Mismatched selected preparation was silently replaced'
-$a=Get-DesktopActions 'No matching preparation' $false $false $false $true $true $false
+$a=Get-DesktopActions 'No matching preparation' $false $false $false $true $true $false 'NoPatchDetected'
 Assert ($a.CanPrepare -and $a.CanPatch -and !$a.CanRestore) 'Fresh original could not be prepared'
 foreach($state in @('Unknown archive','Unavailable')){
- $a=Get-DesktopActions $state $false $true $true $true $true $false
+ $a=Get-DesktopActions $state $false $true $true $true $true $false 'NoPatchDetected'
  Assert (!$a.CanPatch -and !$a.CanRestore) 'Unknown/unavailable archive permitted mutation'
 }
 foreach($state in @('Original','Experimental blocker applied','No matching preparation')){
- $a=Get-DesktopActions $state $false $true $true $true $false $false
+ $a=Get-DesktopActions $state $false $true $true $true $false $false 'NoPatchDetected'
  Assert (!$a.CanPatch -and !$a.CanRestore) 'Running controller permitted mutation'
+}
+foreach($content in @('CurrentPatch','LegacyPatch','PartialPatch','Unreadable')){
+ $a=Get-DesktopActions 'Original' $false $true $true $true $true $false $content
+ Assert (!$a.CanPatch -and !$a.CanPrepare) 'Content inspection was ignored for an alleged original'
+ $a=Get-DesktopActions 'No matching preparation' $false $false $false $true $true $false $content
+ Assert (!$a.CanPatch -and !$a.CanPrepare -and !$a.CanRestore) 'Untracked patch permitted preparation or restore'
+ $a=Get-DesktopActions 'Experimental blocker applied' $false $true $true $false $true $false $content
+ Assert $a.CanRestore 'Independent inspection failure blocked a verified original restore'
 }
 Assert ((ConvertTo-DesktopArgument "C:\a b\owner's folder\") -ceq '"C:\a b\owner''s folder\\"') 'Trailing slash or apostrophe quoting failed'
 foreach($arg in @('a"b',"a`nb","a`rb","a$([char]0)b")){Throws {ConvertTo-DesktopArgument $arg} 'Unsafe argument accepted'}
@@ -40,13 +48,26 @@ try{
  $prep=Join-Path $scratch 'preparation'
  New-Item -ItemType Directory -Path (Join-Path $install 'resources'),$prep -Force | Out-Null
  $target=Join-Path $install 'resources\app.asar';$exe=Join-Path $install 'RazerAppEngine.exe'
- [IO.File]::WriteAllText($target,'original fixture');[IO.File]::WriteAllText($exe,'future executable')
+ $fixtureScript=Join-Path $scratch 'make-archive.cjs'
+ $fixtureSource=@"
+const fs=require('node:fs');
+const names=['node_modules/rz-usb-detect/index.js','node_modules/node-rz-hid/nodehid.js','electron/main.js','electron/modules/mapping_engine/win/index.js'];
+const h={files:{}},data=[];let offset=0;
+for(const name of names){const bytes=Buffer.from('module.exports={};'),parts=name.split('/');let dir=h;for(const part of parts.slice(0,-1))dir=dir.files[part]??={files:{}};dir.files[parts.at(-1)]={size:bytes.length,offset:String(offset)};data.push(bytes);offset+=bytes.length;}
+const json=Buffer.from(JSON.stringify(h)),aligned=Math.ceil(json.length/4)*4,header=Buffer.alloc(16+aligned);header.writeUInt32LE(4,0);header.writeUInt32LE(8+aligned,4);header.writeUInt32LE(4+aligned,8);header.writeUInt32LE(json.length,12);json.copy(header,16);fs.writeFileSync(process.argv[2],Buffer.concat([header,...data]));
+"@
+ [IO.File]::WriteAllText($fixtureScript,$fixtureSource)
+ & $nodeSource $fixtureScript $target
+ Assert ($LASTEXITCODE -eq 0) 'Synthetic ASAR construction failed'
+ [IO.File]::WriteAllText($exe,'future executable')
  Copy-Item -LiteralPath $target -Destination (Join-Path $prep 'original.asar')
  [IO.File]::WriteAllText((Join-Path $prep 'blocked.asar'),'patched fixture')
  $m=[ordered]@{schemaVersion=1;patchId='OSSBlade/synapse-blade-blocker';originalAsarSha256=(Read-Hash $target);patchedAsarSha256=(Read-Hash (Join-Path $prep 'blocked.asar'));executableSha256=(Read-Hash $exe);bladeProductIds=@(736)}
  $m | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $prep 'preparation.json')
  $s=Get-DesktopState $prep $install
- Assert ($s.NodeReady -and $s.State -eq 'Original' -and $s.CanPatch -and !$s.CanRestore) 'Real original discovery or multiple Node resolution failed'
+ Assert ($s.NodeReady -and $s.State -eq 'Original' -and $s.CanPatch -and !$s.CanRestore -and $s.ContentState -eq 'NoPatchDetected') 'Independent archive inspection or multiple Node resolution failed'
+ $scan=Get-ArchiveInspection $target ('f'*64)
+ Assert ($scan.State -eq 'Unreadable') 'Inspection ignored an archive hash change'
  Set-BlockerArchive $target $exe $prep Apply | Out-Null
  $s=Get-DesktopState $prep $install
  Assert ($s.CanRestore -and $s.AppliedMetadataMatches -and !$s.CanPatch) 'Real patched state was not verified'

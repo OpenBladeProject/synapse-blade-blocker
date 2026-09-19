@@ -71,7 +71,7 @@ function Set-DesktopBusy([bool]$Busy) {
 }
 function Show-DesktopState($Result) {
  $script:desktopResult=$Result.State;$script:lastOutcome=$Result.Outcome
- $controls.StateText.Text=$Result.State.State
+ $controls.StateText.Text=$Result.State.DisplayState
  $controls.InstallText.Text=if($Result.State.Installation){$Result.State.Installation}else{'No readable standard AppEngine installation detected.'}
  $controls.RuntimeText.Text='Node.js: '+$Result.State.NodeVersion+'  |  Controllers: '+$(if($Result.State.ControllersStopped){'stopped'}else{'running or unavailable'})
  $controls.DetailsText.Text=$Result.State.Message

@@ -15,7 +15,7 @@ try{$directory=Find-Preparation $PreparationDirectory $current $actualExe;$m=Rea
 $state=if(!$m -or $actualExe -ne $m.executableSha256){'No matching preparation'}elseif($current -eq $m.originalAsarSha256){'Original'}elseif($current -eq $m.patchedAsarSha256){'Experimental blocker applied'}else{'Unknown archive'}
 if($Mode -eq 'Status'){
  $marker=Join-Path $install 'resources\synapse-blade-blocker.json'
- [pscustomobject]@{ToolVersion=$toolVersion;State=$state;Installation=$install;ArchiveSha256=$current;ExecutableSha256=$actualExe;AppliedMetadataMatches=($m -and $current -eq $m.patchedAsarSha256 -and (Test-AppliedMarker $marker $m));IsolationValidated=$false}
+ [pscustomobject]@{ToolVersion=$toolVersion;State=$state;Installation=$install;ArchiveSha256=$current;ExecutableSha256=$actualExe;ArchiveInspection=(Get-ArchiveInspection $target $current);AppliedMetadataMatches=($m -and $current -eq $m.patchedAsarSha256 -and (Test-AppliedMarker $marker $m));IsolationValidated=$false}
  return
 }
 if(!$m -or $actualExe -ne $m.executableSha256 -or $current -notin @($m.originalAsarSha256,$m.patchedAsarSha256)){throw 'Installation does not match this preparation. Preserve unknown updates; prepare the new original build.'}

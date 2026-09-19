@@ -32,6 +32,8 @@ The window stays responsive during checks and preparation. It explains missing p
 
 After a Synapse update, refresh the status and prepare the new original build. Do not reuse an older backup for a changed installation. If an operation fails, expand **Backups and diagnostics**. Use **Copy diagnostic details** for sanitized status or **Open saved reports** for compatibility reports from preparation or archive replacement. Follow the displayed recovery instructions. Keep backups if replacement cannot be verified, and do not launch Synapse until the installation is reconciled.
 
+The window also inspects the archive contents directly, so earlier blocker patches can be detected without an applied marker or a preparation folder. It distinguishes a recognized patch, incomplete or unfamiliar blocker traces, and no recognized blocker edits. An unreadable archive is not labeled clean. A backup hash match is reported separately and does not prove that a saved original was never modified. Recognition alone does not enable Restore: it still requires the matching verified original.
+
 The existing PowerShell commands remain available below.
 
 ## Prepare the patch

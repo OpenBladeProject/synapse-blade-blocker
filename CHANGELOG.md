@@ -6,6 +6,10 @@
 
 - Add a standalone Windows window for verified patching and restoration, automatic preparation, backup recovery, and sanitized diagnostics. ([#7](https://github.com/OSSBlade/synapse-blade-blocker/pull/7))
 
+### Fixed
+
+- Detect existing blocker edits from archive contents independently of local patch metadata, and distinguish content inspection from a saved-original hash match. ([#7](https://github.com/OSSBlade/synapse-blade-blocker/pull/7))
+
 ## [0.1.0] - 2026-09-19
 
 ### Added

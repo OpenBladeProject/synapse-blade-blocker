@@ -71,3 +71,7 @@ powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File .\BladeBlocker.UI.p
 ```
 
 `-SmokeTest` constructs the window without inspecting Synapse. Optional `-SmokeInspect` exercises the actual asynchronous read-only refresh with a 30-second deadline. Smoke mode rejects Patch/Restore. Optional `-SmokeScreenshot <path>` saves a local render; keep screenshots containing local paths out of public reports.
+
+Archive inspection follow-up: the installed 4.0.823 archive contained no blocker root modules or recognized inserted hooks, independently of the saved-original hash comparison. Detection follows active ASAR header entries so unused payload bytes do not count as an installed patch. Archive inspection is informational; it does not create applied metadata or supply a missing restore backup.
+
+The content-detection follow-up passed 21 source tests, including original/current/legacy/partial archive fixtures, unused payload bytes, malformed bounds, and the scanner CLI contract. Preserved earlier patched archives were recognized as legacy; the current prepared patch was recognized as current. Desktop and scratch operation checks passed in both PowerShell editions, and the read-only window displayed "No blocker edits detected" for the installed archive.
