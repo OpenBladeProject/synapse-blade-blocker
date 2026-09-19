@@ -6,7 +6,7 @@ September 19, 2026: dynamic discovery selected the installed AppEngine **4.0.823
 
 The 88 local-module checks passed against the generated 4.0.823 modules. Mocks discover native/service minifier aliases from each prepared build and never load native vendor dependencies. Source tests also cover a synthetic future version with changed executable bytes and renamed aliases, missing/duplicate mandatory routes, missing wrappers, malformed input, already-patched input, preserved prior preparations, and privacy-safe failure reports.
 
-The PowerShell operation suite uses disposable synthetic files to verify newest/active installation selection, standard-path bounds, Apply/Restore, applied marker fields, missing-marker repair, idempotence, unique backup preservation, corrupted rollback refusal, unknown update refusal, and restore without the patch file. Actual installed Apply/Restore and native execution were not performed for this revision. The marker lifecycle is verified with scratch fixtures, not a fresh physical trial.
+The PowerShell operation suite uses disposable synthetic files to verify newest/active installation selection, standard-path bounds, Apply/Restore, applied marker fields, missing-marker repair, idempotence, unique backup preservation, corrupted rollback refusal, unknown update refusal, and restore without the patch file. The scratch suite performs no native vendor execution. The subsequent installed trial is recorded below.
 
 The operation suite also covers relative paths after `Push-Location`, UTC timestamp comparisons and future rejection, and actual early-discovery diagnostic calls with missing archive/executable paths. The reports are checked for the PowerShell version and absence of private paths. CI runs this suite in both Windows PowerShell 5.1 and PowerShell 7 with the runner timezone set to Pacific Standard Time.
 
@@ -27,3 +27,11 @@ September 18–19, 2026: that historical archive was used with a Razer Pro Click
 Original Synapse was restored and OpenBlade restarted after the trial. No blocker remained installed at that verification. This is a historical observation, not a statement about current machine state.
 
 Private raw captures and vendor archives are excluded. The evidence supports an experimental one-device physical result and structural preparation for additional builds, not universal enforcement. Applied metadata permits a separate OpenBlade integration to recognize matching artifacts; metadata alone does not establish isolation.
+
+## Local integration trial: 2026-09-19
+
+At blocker revision 1261363e1c53a963f23b06d9cef554d22d5932d5, fresh preparation of AppEngine 4.0.823 preserved 10,059 unrelated packed files and all 88 mocked-module checks passed. Real Apply and Restore succeeded under PowerShell 7.6.5 in Pacific time.
+
+While four patched AppEngine processes ran after application, a read-only probe of OpenBlade core revision 466966e84c2114444684d53e2dc309ad1c7f3fc2 reported Safe=true, no conflicts and no detection error. OpenBlade and RGS were stopped. The user confirmed Pro Click V2 visible, Blade absent and mouse working, then exited Synapse. This trial did not separately exercise remapping, macros, profiles or lighting.
+
+Restoration recovered the exact original archive hash and removed the marker. The installed OpenBlade service and Session Agent hashes remained unchanged; the service, one tray and one Session Agent were restarted. Synapse was left stopped. The trial exercised the new core guard without installing the new OpenBlade build, so it does not establish installed UI integration or complete hardware isolation.
