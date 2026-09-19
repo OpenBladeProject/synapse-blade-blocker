@@ -30,6 +30,15 @@ try{
  [IO.File]::WriteAllText((Join-Path $preparation 'blocked.asar'),'patched future build')
  $meta=[ordered]@{schemaVersion=1;patchId='OSSBlade/synapse-blade-blocker';originalAsarSha256=(Read-Hash $target);patchedAsarSha256=(Read-Hash (Join-Path $preparation 'blocked.asar'));executableSha256=(Read-Hash $exe);bladeProductIds=@(563,736)}
  $meta | ConvertTo-Json | Set-Content (Join-Path $preparation 'preparation.json')
+ # PowerShell location can differ from the process working directory.
+ $processDirectory=[Environment]::CurrentDirectory
+ Push-Location $scratch
+ try{
+  Assert ([Environment]::CurrentDirectory -eq $processDirectory) 'Fixture changed process working directory'
+  Assert ((Resolve-AppEngine '.\ProgramFiles\Razer\RazerAppEngine\app-99.1.0') -eq $install) 'Relative installation ignored PowerShell location'
+  Assert ((Find-Preparation '.\preparation' '' '') -eq $preparation) 'Relative preparation ignored PowerShell location'
+  Throws {Resolve-FileSystemPath 'Env:\ProgramFiles'} 'Non-filesystem provider accepted'
+ }finally{Pop-Location}
  $result=Set-BlockerArchive $target $exe $preparation Apply
  $marker=Join-Path $install 'resources\synapse-blade-blocker.json'
  Assert $result.Success 'Apply failed'
@@ -40,6 +49,17 @@ try{
  $markerHash=Read-Hash $marker
  $again=Set-BlockerArchive $target $exe $preparation Apply
  Assert (!$again.Backup -and (Read-Hash $marker) -eq $markerHash) 'Reapply was not idempotent'
+ $originalMarker=[IO.File]::ReadAllText($marker)
+ $stamp=[DateTime]::UtcNow.AddDays(-1)
+ Assert ((Read-UtcTimestamp $stamp) -eq (Read-UtcTimestamp $stamp.ToString('o'))) 'UTC DateTime and JSON string differ'
+ Assert ((Read-UtcTimestamp $stamp.ToLocalTime()) -eq (Read-UtcTimestamp $stamp)) 'Local DateTime lost its UTC instant'
+ $applied.appliedAtUtc=[DateTime]::UtcNow.AddDays(1).ToString('o')
+ $applied | ConvertTo-Json | Set-Content -LiteralPath $marker
+ Assert (!(Test-AppliedMarker $marker $meta)) 'Future marker accepted'
+ $applied.appliedAtUtc='invalid timestamp'
+ $applied | ConvertTo-Json | Set-Content -LiteralPath $marker
+ Assert (!(Test-AppliedMarker $marker $meta)) 'Malformed marker timestamp accepted'
+ [IO.File]::WriteAllText($marker,$originalMarker)
  Remove-Item -LiteralPath $marker
  Set-BlockerArchive $target $exe $preparation Apply | Out-Null
  Assert (Test-AppliedMarker $marker $meta) 'Reapply did not recreate missing metadata after verification'
@@ -59,7 +79,27 @@ try{
  $again=Set-BlockerArchive $target $exe $preparation Restore
  Assert (!$again.Backup) 'Restore was not idempotent'
  Assert (Test-Path $result.Backup) 'Prior atomic backup was lost'
- Write-Output 'Passed: discovery, active path, future version, bounded explicit path, apply, marker contract, idempotence, missing-marker repair, unknown archive/executable preservation, corrupt rollback, restore without patch, backup preservation.'
+ # Execute the real early-failure reporting path in this PowerShell edition, in scratch only.
+ $reportRoot=Join-Path $scratch 'report-private-serial'
+ New-Item -ItemType Directory -Path $reportRoot | Out-Null
+ foreach($file in @('Prepare.ps1','BladeBlocker.ps1','Blocker.Common.ps1','failure-report.cjs','package.json')){Copy-Item -LiteralPath (Join-Path $PSScriptRoot $file) -Destination $reportRoot}
+ $hostExe=(Microsoft.PowerShell.Management\Get-Process -Id $PID -ErrorAction Stop).Path
+ foreach($entry in @('Prepare.ps1','BladeBlocker.ps1')){
+  $ErrorActionPreference='Continue'
+  try{& $hostExe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $reportRoot $entry) -InstallDirectory (Join-Path $scratch 'private-serial-invalid') *> (Join-Path $scratch 'failure-output.txt')}finally{$ErrorActionPreference='Stop'}
+  Assert ($LASTEXITCODE -ne 0) 'Invalid installation unexpectedly succeeded'
+ }
+ $reports=@(Get-ChildItem -LiteralPath (Join-Path $reportRoot 'diagnostics') -Filter '*.md')
+ Assert ($reports.Count -eq 2) 'Early discovery failures did not produce both reports'
+ foreach($report in $reports){
+  $text=Get-Content -LiteralPath $report.FullName -Raw
+  Assert ($text.Contains('- PowerShell: '+$PSVersionTable.PSVersion.ToString())) 'Early report lost PowerShell version'
+  Assert ($text.Contains('- Archive SHA-256: unavailable') -and $text.Contains('- Executable SHA-256: unavailable')) 'Early report misbound missing artifact arguments'
+  Assert (!$text.Contains($scratch) -and $text -notmatch 'private-serial|Expected a standard') 'Early report leaked private path or exception'
+ }
+ # The child failures were expected; do not propagate their native exit code to CI.
+ $global:LASTEXITCODE=0
+ Write-Output ('Passed in PowerShell '+$PSVersionTable.PSVersion+' ('+[TimeZoneInfo]::Local.Id+'): discovery, relative provider paths, future version, apply/restore, UTC marker contract, future rejection, idempotence, backup/update safety, early-report privacy and runtime version.')
 }finally{
  $env:ProgramFiles=$oldProgramFiles
  $resolved=[IO.Path]::GetFullPath($scratch)

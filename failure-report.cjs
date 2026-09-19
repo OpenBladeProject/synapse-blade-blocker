@@ -7,6 +7,7 @@ function describe(error){
  const anchor=/Mandatory patch anchor missing or ambiguous \(([a-zA-Z0-9_-]+); matches=(\d+)\)/.exec(text);
  if(anchor)return {category:'incompatible-layout',message:'A mandatory structural edit could not be completed.',anchor:anchor[1],matches:Number(anchor[2])};
  if(/Already patched/.test(text))return {category:'already-patched-source',message:'Preparation requires the preserved original archive.'};
+ if(/No matching local preparation/i.test(text))return {category:'missing-input',message:'A required installation file or matching local preparation was unavailable.'};
  if(/hash|integrity|verification|changed|unknown|match|rollback/i.test(text))return {category:'integrity-or-state-mismatch',message:'The observed installation or local archive did not match the required state.'};
  if(/Unsupported input|Invalid ASAR|electronAction handler|Invalid Blade registry/.test(text))return {category:'incompatible-layout',message:'A required archive entry or structural contract was not recognized.'};
  if(/administrator|stopped|Exit Synapse|running|permission|denied|EACCES|EPERM/i.test(text))return {category:'access-or-running-process',message:'Required file access or stopped-process conditions were not satisfied.'};
@@ -26,4 +27,4 @@ function report(options,outputDirectory=path.join(__dirname,'diagnostics')){
  console.error(markdown);return markdown;
 }
 module.exports={describe,render,report};
-if(require.main===module){const [stage,error,archive,executable,psVersion]=process.argv.slice(2);report({stage,error,archive,executable,psVersion});}
+if(require.main===module){const options={};for(const arg of process.argv.slice(2)){const match=/^--(stage|error|archive|executable|psVersion)=(.*)$/s.exec(arg);if(match)options[match[1]]=match[2];}report(options);}

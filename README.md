@@ -22,6 +22,8 @@ Each preparation creates a new ignored `prepared/<timestamp>-<id>/` folder with 
 
 Apply/Restore automatically find a local preparation whose archive and executable hashes match the selected installation. Use `-PreparationDirectory` to select one explicitly. Local module tests select the newest completed preparation; set `BLOCKER_PREPARATION_DIRECTORY` to test a particular folder.
 
+Relative `-InstallDirectory` and `-PreparationDirectory` paths resolve from the current PowerShell location. Windows PowerShell 5.1 and PowerShell 7 are covered by scratch operation tests, including non-UTC local timezones and UTC marker validation. Future-dated markers are rejected. Early discovery failures retain the PowerShell version in sanitized diagnostics; a missing matching preparation is reported as missing input.
+
 ## Apply and restore
 
 Exit Synapse and shut down OpenBlade through its Settings page. Run Apply from an administrator PowerShell window:

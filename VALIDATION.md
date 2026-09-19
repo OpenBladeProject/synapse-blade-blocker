@@ -8,6 +8,8 @@ The 88 local-module checks passed against the generated 4.0.823 modules. Mocks d
 
 The PowerShell operation suite uses disposable synthetic files to verify newest/active installation selection, standard-path bounds, Apply/Restore, applied marker fields, missing-marker repair, idempotence, unique backup preservation, corrupted rollback refusal, unknown update refusal, and restore without the patch file. Actual installed Apply/Restore and native execution were not performed for this revision. The marker lifecycle is verified with scratch fixtures, not a fresh physical trial.
 
+The operation suite also covers relative paths after `Push-Location`, UTC timestamp comparisons and future rejection, and actual early-discovery diagnostic calls with missing archive/executable paths. The reports are checked for the PowerShell version and absence of private paths. CI runs this suite in both Windows PowerShell 5.1 and PowerShell 7 with the runner timezone set to Pacific Standard Time.
+
 The retained historical 92,801,061-byte local original archive from 4.0.821 also transforms with the new structural builder and verifies 9,947 untouched entries. Its local files remain preserved.
 
 ## Historical physical evidence

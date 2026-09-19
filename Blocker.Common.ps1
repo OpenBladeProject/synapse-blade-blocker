@@ -5,10 +5,16 @@ function Read-Hash([string]$Path){
  try{return [BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-','').ToLowerInvariant()}
  finally{$sha.Dispose();$stream.Dispose()}
 }
+function Resolve-FileSystemPath([string]$Path){
+ $provider=$null;$drive=$null
+ $full=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path,[ref]$provider,[ref]$drive)
+ if($provider.Name -ne 'FileSystem'){throw 'Expected a filesystem path.'}
+ return $full
+}
 function Resolve-AppEngine([string]$InstallDirectory){
  $root=[IO.Path]::GetFullPath((Join-Path $env:ProgramFiles 'Razer\RazerAppEngine'))
  function Check-Directory([string]$Directory){
-  $full=[IO.Path]::GetFullPath($Directory).TrimEnd('\')
+  $full=(Resolve-FileSystemPath $Directory).TrimEnd('\')
   if([IO.Path]::GetDirectoryName($full) -ne $root -or [IO.Path]::GetFileName($full) -notmatch '^app-\d+(\.\d+){1,3}$'){throw 'Expected a standard Program Files\Razer\RazerAppEngine\app-VERSION directory.'}
   foreach($p in @($root,$full,(Join-Path $full 'resources'),(Join-Path $full 'RazerAppEngine.exe'),(Join-Path $full 'resources\app.asar'))){
    $item=Get-Item -LiteralPath $p -Force
@@ -37,7 +43,7 @@ function Read-Preparation([string]$Directory){
  return $m
 }
 function Find-Preparation([string]$Directory,[string]$ArchiveHash,[string]$ExecutableHash){
- if($Directory){return [IO.Path]::GetFullPath($Directory)}
+ if($Directory){return Resolve-FileSystemPath $Directory}
  $root=Join-Path $PSScriptRoot 'prepared'
  if(Test-Path -LiteralPath $root){
   foreach($candidate in (Get-ChildItem -LiteralPath $root -Directory | Sort-Object Name -Descending)){
@@ -47,19 +53,29 @@ function Find-Preparation([string]$Directory,[string]$ArchiveHash,[string]$Execu
  }
  throw 'No matching local preparation. Run Prepare.ps1 for this installation; preserve all older preparations.'
 }
+function Read-UtcTimestamp($Value){
+ # PowerShell 7 may deserialize JSON timestamps as DateTime; PowerShell 5 leaves strings.
+ if($Value -is [DateTime]){
+  if($Value.Kind -eq [DateTimeKind]::Unspecified){throw 'Applied timestamp requires a timezone.'}
+  return [DateTimeOffset]::new($Value.ToUniversalTime())
+ }
+ $stamp=[DateTimeOffset]::Parse([string]$Value,[Globalization.CultureInfo]::InvariantCulture)
+ if($stamp.Offset -ne [TimeSpan]::Zero -or [string]$Value -notmatch '(Z|[+]00:00)$'){throw 'Applied timestamp must be UTC.'}
+ return $stamp.ToUniversalTime()
+}
 function Write-AppliedMarker([string]$Marker,$Metadata){
  $record=[ordered]@{schemaVersion=1;patchId='OSSBlade/synapse-blade-blocker';archiveSha256=$Metadata.patchedAsarSha256;executableSha256=$Metadata.executableSha256;appliedAtUtc=[DateTime]::UtcNow.ToString('o');bladeProductIds=@($Metadata.bladeProductIds)}
  $stage=$Marker+'.stage-'+[guid]::NewGuid().ToString('N')
  [IO.File]::WriteAllText($stage,($record | ConvertTo-Json -Depth 4),(New-Object Text.UTF8Encoding $false))
  if(Test-Path -LiteralPath $Marker){[IO.File]::Replace($stage,$Marker,$Marker+'.backup-'+[guid]::NewGuid().ToString('N'))}else{[IO.File]::Move($stage,$Marker)}
  $read=Get-Content -LiteralPath $Marker -Raw | ConvertFrom-Json
- if($read.archiveSha256 -ne $record.archiveSha256 -or $read.executableSha256 -ne $record.executableSha256 -or $read.appliedAtUtc -ne $record.appliedAtUtc){throw 'Applied metadata verification failed; do not start Synapse.'}
+ if($read.archiveSha256 -ne $record.archiveSha256 -or $read.executableSha256 -ne $record.executableSha256 -or (Read-UtcTimestamp $read.appliedAtUtc) -ne (Read-UtcTimestamp $record.appliedAtUtc)){throw 'Applied metadata verification failed; do not start Synapse.'}
 }
 function Test-AppliedMarker([string]$Marker,$Metadata){
  try{
   $m=Get-Content -LiteralPath $Marker -Raw | ConvertFrom-Json
-  $stamp=[DateTimeOffset]::Parse($m.appliedAtUtc)
-  return $m.schemaVersion -eq 1 -and $m.patchId -ceq 'OSSBlade/synapse-blade-blocker' -and $m.archiveSha256 -eq $Metadata.patchedAsarSha256 -and $m.executableSha256 -eq $Metadata.executableSha256 -and $stamp.Offset -eq [TimeSpan]::Zero -and (($m.bladeProductIds | Sort-Object -Unique) -join ',') -eq (($Metadata.bladeProductIds | Sort-Object -Unique) -join ',')
+  $stamp=Read-UtcTimestamp $m.appliedAtUtc
+  return $m.schemaVersion -eq 1 -and $m.patchId -ceq 'OSSBlade/synapse-blade-blocker' -and $m.archiveSha256 -eq $Metadata.patchedAsarSha256 -and $m.executableSha256 -eq $Metadata.executableSha256 -and $stamp -le [DateTimeOffset]::UtcNow -and (($m.bladeProductIds | Sort-Object -Unique) -join ',') -eq (($Metadata.bladeProductIds | Sort-Object -Unique) -join ',')
  }catch{return $false}
 }
 function Set-BlockerArchive([string]$Target,[string]$Executable,[string]$Directory,[string]$Mode){

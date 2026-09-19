@@ -28,6 +28,6 @@ if($svc -and $svc.Status -ne 'Stopped'){throw 'OpenBlade service must be stopped
 Set-BlockerArchive $target $exe $directory $Mode
 
 }catch{
- try { & node (Join-Path $PSScriptRoot 'failure-report.cjs') $Mode $_.Exception.Message $target $exe $PSVersionTable.PSVersion.ToString() } catch { Write-Warning 'Diagnostic reporting failed; the original error follows.' }
+ try { & node (Join-Path $PSScriptRoot 'failure-report.cjs') ('--stage='+$Mode) ('--error='+$_.Exception.Message) ('--archive='+$target) ('--executable='+$exe) ('--psVersion='+$PSVersionTable.PSVersion.ToString()) } catch { Write-Warning 'Diagnostic reporting failed; the original error follows.' }
  throw
 }

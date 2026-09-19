@@ -9,6 +9,14 @@ jobs:
         with:
           node-version: 22
       - run: npm test
+      - name: Use a non-UTC timezone for timestamp regression coverage
+        run: tzutil /s "Pacific Standard Time"
+      - name: Scratch operations in Windows PowerShell 5.1
+        shell: powershell
+        run: .\operations.test.ps1
+      - name: Scratch operations in PowerShell 7
+        shell: pwsh
+        run: .\operations.test.ps1
       - shell: pwsh
         run: |
           Get-ChildItem *.ps1 | ForEach-Object {

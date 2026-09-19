@@ -18,6 +18,6 @@ if((Read-Hash $archive) -ne $before -or (Read-Hash $exe) -ne $exeBefore -or $m.o
 [pscustomobject]@{Prepared=$true;Installation=$install;PreparationDirectory=$output;InstalledFilesModified=$false}
 
 }catch{
- try { if(!$builderReported){ & node (Join-Path $PSScriptRoot 'failure-report.cjs') 'Prepare' $_.Exception.Message $archive $exe $PSVersionTable.PSVersion.ToString() } } catch { Write-Warning 'Diagnostic reporting failed; the original error follows.' }
+ try { if(!$builderReported){ & node (Join-Path $PSScriptRoot 'failure-report.cjs') '--stage=Prepare' ('--error='+$_.Exception.Message) ('--archive='+$archive) ('--executable='+$exe) ('--psVersion='+$PSVersionTable.PSVersion.ToString()) } } catch { Write-Warning 'Diagnostic reporting failed; the original error follows.' }
  throw
 }
