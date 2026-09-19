@@ -1,7 +1,9 @@
 [CmdletBinding(SupportsShouldProcess=$true)]
-param([ValidateSet('Status','Apply','Restore')][string]$Mode='Status',[string]$InstallDirectory,[string]$PreparationDirectory)
+param([ValidateSet('Status','Apply','Restore')][string]$Mode='Status',[string]$InstallDirectory,[string]$PreparationDirectory,[switch]$Version)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'Blocker.Common.ps1')
+if($Version){Get-ToolVersion;return}
+$toolVersion=Get-ToolVersion
 try {
 $env:BLOCKER_POWERSHELL_VERSION=$PSVersionTable.PSVersion.ToString()
 $install=Resolve-AppEngine $InstallDirectory
@@ -13,7 +15,7 @@ try{$directory=Find-Preparation $PreparationDirectory $current $actualExe;$m=Rea
 $state=if(!$m -or $actualExe -ne $m.executableSha256){'No matching preparation'}elseif($current -eq $m.originalAsarSha256){'Original'}elseif($current -eq $m.patchedAsarSha256){'Experimental blocker applied'}else{'Unknown archive'}
 if($Mode -eq 'Status'){
  $marker=Join-Path $install 'resources\synapse-blade-blocker.json'
- [pscustomobject]@{State=$state;Installation=$install;ArchiveSha256=$current;ExecutableSha256=$actualExe;AppliedMetadataMatches=($m -and $current -eq $m.patchedAsarSha256 -and (Test-AppliedMarker $marker $m));IsolationValidated=$false}
+ [pscustomobject]@{ToolVersion=$toolVersion;State=$state;Installation=$install;ArchiveSha256=$current;ExecutableSha256=$actualExe;AppliedMetadataMatches=($m -and $current -eq $m.patchedAsarSha256 -and (Test-AppliedMarker $marker $m));IsolationValidated=$false}
  return
 }
 if(!$m -or $actualExe -ne $m.executableSha256 -or $current -notin @($m.originalAsarSha256,$m.patchedAsarSha256)){throw 'Installation does not match this preparation. Preserve unknown updates; prepare the new original build.'}

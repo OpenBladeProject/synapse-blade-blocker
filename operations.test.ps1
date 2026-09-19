@@ -7,6 +7,10 @@ New-Item -ItemType Directory -Path $scratch | Out-Null
 $oldProgramFiles=$env:ProgramFiles
 try{
  $env:ProgramFiles=Join-Path $scratch 'ProgramFiles'
+ $hostExe=(Microsoft.PowerShell.Management\Get-Process -Id $PID -ErrorAction Stop).Path
+ $packageVersion=[string](Get-Content -LiteralPath (Join-Path $PSScriptRoot 'package.json') -Raw | ConvertFrom-Json).version
+ $reportedVersion=& $hostExe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'BladeBlocker.ps1') -Version
+ Assert ($LASTEXITCODE -eq 0 -and [string]$reportedVersion -ceq $packageVersion) 'Offline -Version did not match package.json'
  $engineRoot=Join-Path $env:ProgramFiles 'Razer\RazerAppEngine'
  foreach($version in @('4.0.821','99.1.0')){
   $dir=Join-Path $engineRoot ('app-'+$version)
@@ -30,6 +34,8 @@ try{
  [IO.File]::WriteAllText((Join-Path $preparation 'blocked.asar'),'patched future build')
  $meta=[ordered]@{schemaVersion=1;patchId='OSSBlade/synapse-blade-blocker';originalAsarSha256=(Read-Hash $target);patchedAsarSha256=(Read-Hash (Join-Path $preparation 'blocked.asar'));executableSha256=(Read-Hash $exe);bladeProductIds=@(563,736)}
  $meta | ConvertTo-Json | Set-Content (Join-Path $preparation 'preparation.json')
+ $status=& (Join-Path $PSScriptRoot 'BladeBlocker.ps1') -Mode Status -InstallDirectory $install -PreparationDirectory $preparation
+ Assert ($status.ToolVersion -ceq $packageVersion) 'Status result version did not match package.json'
  # PowerShell location can differ from the process working directory.
  $processDirectory=[Environment]::CurrentDirectory
  Push-Location $scratch
@@ -42,6 +48,7 @@ try{
  $result=Set-BlockerArchive $target $exe $preparation Apply
  $marker=Join-Path $install 'resources\synapse-blade-blocker.json'
  Assert $result.Success 'Apply failed'
+ Assert ($result.ToolVersion -ceq $packageVersion) 'Apply result version did not match package.json'
  Assert ((Read-Hash $result.Backup) -eq $meta.originalAsarSha256) 'Original atomic backup was not preserved'
  $applied=Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
  Assert (Test-AppliedMarker $marker $meta) 'Applied marker did not verify'
@@ -83,7 +90,6 @@ try{
  $reportRoot=Join-Path $scratch 'report-private-serial'
  New-Item -ItemType Directory -Path $reportRoot | Out-Null
  foreach($file in @('Prepare.ps1','BladeBlocker.ps1','Blocker.Common.ps1','failure-report.cjs','package.json')){Copy-Item -LiteralPath (Join-Path $PSScriptRoot $file) -Destination $reportRoot}
- $hostExe=(Microsoft.PowerShell.Management\Get-Process -Id $PID -ErrorAction Stop).Path
  foreach($entry in @('Prepare.ps1','BladeBlocker.ps1')){
   $ErrorActionPreference='Continue'
   try{& $hostExe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $reportRoot $entry) -InstallDirectory (Join-Path $scratch 'private-serial-invalid') *> (Join-Path $scratch 'failure-output.txt')}finally{$ErrorActionPreference='Stop'}
@@ -99,7 +105,7 @@ try{
  }
  # The child failures were expected; do not propagate their native exit code to CI.
  $global:LASTEXITCODE=0
- Write-Output ('Passed in PowerShell '+$PSVersionTable.PSVersion+' ('+[TimeZoneInfo]::Local.Id+'): discovery, relative provider paths, future version, apply/restore, UTC marker contract, future rejection, idempotence, backup/update safety, early-report privacy and runtime version.')
+ Write-Output ('Passed in PowerShell '+$PSVersionTable.PSVersion+' ('+[TimeZoneInfo]::Local.Id+'): offline package version, discovery, relative provider paths, future version, apply/restore, UTC marker contract, future rejection, idempotence, backup/update safety, early-report privacy and runtime version.')
 }finally{
  $env:ProgramFiles=$oldProgramFiles
  $resolved=[IO.Path]::GetFullPath($scratch)

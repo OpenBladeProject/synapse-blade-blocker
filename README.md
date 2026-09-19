@@ -2,6 +2,12 @@
 
 Experimental Blade exclusion for Razer Synapse: keep Synapse available for peripherals while suppressing recognized Blade discovery and selected laptop-specific routes.
 
+The initial unreleased tool version is `0.1.0`. Query it offline with Windows PowerShell 5.1 or PowerShell 7; this command does not require Synapse, Node.js, installation discovery, or administrator access:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Version
+```
+
 There is **no Synapse version or executable-hash allowlist**. Each installed build is prepared from its own original archive. Preparation requires every structural edit to match exactly once, checks JavaScript syntax, and verifies untouched packed files byte-for-byte. Changed or incomplete layouts stop preparation and produce a sanitized issue report. Successful preparation is evidence that the edits fit that build, not proof of complete hardware isolation.
 
 ## Prepare locally
@@ -32,7 +38,7 @@ Exit Synapse and shut down OpenBlade through its Settings page. Run Apply from a
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Mode Apply
 ```
 
-Confirm `Success: True`, then launch Synapse normally. The helper verifies the original rollback archive, stages the patch, checks for a concurrent update, atomically replaces `app.asar`, preserves a unique installation backup, verifies the result, and then writes `resources/synapse-blade-blocker.json`.
+Confirm `Success: True` and `ToolVersion: 0.1.0`, then launch Synapse normally. Status, preparation, Apply, and Restore success output all report the same package-backed tool version. The helper verifies the original rollback archive, stages the patch, checks for a concurrent update, atomically replaces `app.asar`, preserves a unique installation backup, verifies the result, and then writes `resources/synapse-blade-blocker.json`.
 
 The applied metadata contract is:
 

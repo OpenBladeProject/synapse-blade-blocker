@@ -1,4 +1,10 @@
 $ErrorActionPreference='Stop'
+function Get-ToolVersion {
+ $package=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'package.json') -Raw | ConvertFrom-Json
+ $version=[string]$package.version
+ if($version -cnotmatch '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$'){throw 'package.json contains an invalid tool version.'}
+ return $version
+}
 function Read-Hash([string]$Path){
  if(![IO.File]::Exists($Path)){return $null}
  $stream=[IO.File]::OpenRead($Path);$sha=[Security.Cryptography.SHA256]::Create()
@@ -101,5 +107,5 @@ function Set-BlockerArchive([string]$Target,[string]$Executable,[string]$Directo
  if($Mode -eq 'Apply'){
   if(!(Test-AppliedMarker $marker $m)){Write-AppliedMarker $marker $m}
  }elseif(Test-Path -LiteralPath $marker){Remove-Item -LiteralPath $marker}
- [pscustomobject]@{Mode=$Mode;Success=$true;ArchiveSha256=$wanted;Backup=$backup;PreparationDirectory=$Directory;AppliedMetadata=($Mode -eq 'Apply')}
+ [pscustomobject]@{ToolVersion=(Get-ToolVersion);Mode=$Mode;Success=$true;ArchiveSha256=$wanted;Backup=$backup;PreparationDirectory=$Directory;AppliedMetadata=($Mode -eq 'Apply')}
 }
