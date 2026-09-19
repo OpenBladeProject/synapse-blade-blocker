@@ -1,0 +1,389 @@
+{
+  "schemaVersion": 1,
+  "scope": "Razer Blade laptops only",
+  "retrievedAtUtc": "2026-09-17T23:42:52.763Z",
+  "catalogUrl": "https://apps.razer.com/synapse/dashboard/AvailableDevices.json",
+  "catalogSha256": "8713f17323c633313eb11573055d0f3b7df270f4438cd39ab311b54a8c489dfb",
+  "catalogEntryCount": 325,
+  "unresolvedProductIds": [
+    224,
+    680,
+    1310,
+    1312,
+    1313,
+    1320,
+    1321,
+    1325,
+    1337,
+    1339,
+    1346,
+    1347,
+    1365,
+    1374,
+    1382,
+    1386,
+    1390,
+    1392,
+    1398,
+    1401,
+    1404,
+    1411,
+    1412,
+    1420,
+    1427,
+    1442,
+    2629,
+    2638,
+    2641,
+    2644,
+    2647,
+    2650,
+    2657,
+    2660,
+    2664,
+    2668,
+    2676,
+    2684,
+    3331,
+    3334,
+    3337,
+    3587,
+    3589,
+    3590,
+    3592,
+    3594,
+    3595,
+    3596,
+    3867,
+    3900,
+    3921,
+    4124,
+    4126,
+    4130,
+    4133,
+    4144
+  ],
+  "coverage": "Verified manifest-backed set; not proof of every historical or future Blade model.",
+  "devices": [
+    {
+      "vendorId": 5426,
+      "productId": 563,
+      "name": "Razer Blade 15 Advanced Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_563_0.json",
+      "manifestSha256": "7ad3e7682b05118ae5e4ecdf583dc46aed021737646d8df1829c3638286ed6ce"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 564,
+      "name": "Razer Blade Pro 17",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_564_0.json",
+      "manifestSha256": "cf03df035e020c0d6d3ff43871dc9702421bef4a0d07fc2c6c7577ce2067e286"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 569,
+      "name": "Razer Blade Stealth 13",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_569_0.json",
+      "manifestSha256": "196cfbd2475b82587ddfd0d2f0a2d0f317ea135afc593891d3f637a60451c03f"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 570,
+      "name": "Razer Blade 15 Advanced Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_570_0.json",
+      "manifestSha256": "d674c27e8277fb76d576784ffbddc37872bec8c4dadb88fe6d5616e5a518230d"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 571,
+      "name": "Razer Blade 15 Base Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_571_0.json",
+      "manifestSha256": "31301b46911c38c2d9309896679a0a975d23deafef3f27a27d794891a7a94a2d"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 576,
+      "name": "Razer Blade 15 Mercury White",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_576_0.json",
+      "manifestSha256": "3604829cd955dd27b29c9bc42bf85c0ad48f5f2e8a568e5585d442486e805257"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 581,
+      "name": "Razer Blade 15 Advanced Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_581_0.json",
+      "manifestSha256": "2521ddb2887afabe88003c89975c1539fbf526d24d03f970be1b31c881780c60"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 582,
+      "name": "Razer Blade 15 Base Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_582_0.json",
+      "manifestSha256": "6467f9d28b975ba3fcc289bbac05a2840828341a886cf305a087309cb20b4b1f"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 586,
+      "name": "Razer Blade Stealth 13",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_586_0.json",
+      "manifestSha256": "f69bc4a7b4de1d18dace75c0f66bfe7b69fd26b95ea31035a56d46ebe1757d46"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 587,
+      "name": "Razer Blade 15 Advanced Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_587_0.json",
+      "manifestSha256": "71b63de8bf7e59d5695d50cd9b61e273982b0cbb2e0e70d9432172a7f6f57081"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 588,
+      "name": "Razer Blade Pro 17",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_588_0.json",
+      "manifestSha256": "1f4dd6b087d144848377b4d5298b0bd9c8f2a4b6afc7ae6f34a424b68555f7f8"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 589,
+      "name": "Razer Blade 15 Studio Edition",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_589_0.json",
+      "manifestSha256": "e73ed6980c4d6f6f633a8656b91f5d09fcb79d011cfc8ab0f4429bc50ca72f43"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 594,
+      "name": "Razer Blade Stealth 13 Base Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_594_0.json",
+      "manifestSha256": "a0746dc04ba249a166ba983b122903684a0daa289a3a86446b188dca13dd6bb4"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 595,
+      "name": "Razer Blade 15 Advanced Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_595_0.json",
+      "manifestSha256": "41be934e8d71981ba0eb784facf4f7e1b80494bc2068e155dd7e7aa964e0f3f1"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 597,
+      "name": "Razer Blade 15 Base Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_597_0.json",
+      "manifestSha256": "735186ec3860e2419b48d787394e42b26276f4d13c6a0eac6eea77a5c41e0fc5"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 598,
+      "name": "Razer Blade 15 Advanced Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_598_0.json",
+      "manifestSha256": "ac884e4b34db6a606a42013528acf2c0e3e122373b23f7dd730e48444a5de91c"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 601,
+      "name": "Razer Blade Stealth 13",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_601_0.json",
+      "manifestSha256": "57ebc0b5113d86951f77453312030171affe193f8ce20cbd1d7f57d54707668d"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 616,
+      "name": "Razer Blade 15 Base Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_616_0.json",
+      "manifestSha256": "178685b3c97a9fb3690e17e81983375db853241fe7239af0aa0f298791d1c687"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 621,
+      "name": "Razer Blade 15 Advanced Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_621_0.json",
+      "manifestSha256": "07f3a3b78f5352513bffcf2b596bfe4ace7654dd963f7786672a5b817d1ca918"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 622,
+      "name": "Razer Blade Pro 17",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_622_0.json",
+      "manifestSha256": "36f3c6a630561755a6121eb2f1c181e8eaa032f474eb2a7ee7aa72af14a87175"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 623,
+      "name": "Razer Blade 15 Base Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_623_0.json",
+      "manifestSha256": "f40f59c747ad729748cdec6545d19bd2277c7091825e6e1bdd23ca9cd8502852"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 624,
+      "name": "Razer Blade 14",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_624_0.json",
+      "manifestSha256": "723df3972f62bef781d450ae66e094aee80c78f5b7c2705122044018e62aa7e4"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 630,
+      "name": "Razer Blade 15 Advanced Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_630_0.json",
+      "manifestSha256": "bf643510dfd4edaaac505fdeb63a3588122f644045da17d64f4dfe73d48cd808"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 633,
+      "name": "Razer Blade 17",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_633_0.json",
+      "manifestSha256": "c7b13c465ad75280370883aee7cdddee3120f55a6211d44be9f7052363c4550e"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 634,
+      "name": "Razer Blade 15 Base Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_634_0.json",
+      "manifestSha256": "fe03c144b83261b6098fcdfd6f66119e920aefc4862f341428ac5d9154668070"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 650,
+      "name": "Razer Blade 15 Advanced Model",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_650_0.json",
+      "manifestSha256": "cdfc7f93d25b74d3688cff63518c8cbe1a4d2e4b67d96abade53b5501aa95395"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 651,
+      "name": "Razer Blade 17",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_651_0.json",
+      "manifestSha256": "1acc5e616fa4a6325571cb05bc5c6b6d7131b6b60b70f07b1490f0a6fb8724f2"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 652,
+      "name": "Razer Blade 14",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_652_0.json",
+      "manifestSha256": "4923b4cd0aa1271eaa92c2b107ea232a148a2eae2f8b5e5be392e67ed6d5e692"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 669,
+      "name": "Razer Blade 14",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_669_0.json",
+      "manifestSha256": "bac22fdf6d53d65ee04c55283f18275c48ca61180643e4f712abfb915aee2bb4"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 670,
+      "name": "Razer Blade 15",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_670_0.json",
+      "manifestSha256": "ee087331a017ee9d1e5de957c65286419387f927b4a460b11a961e380c681547"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 671,
+      "name": "Razer Blade 16",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_671_0.json",
+      "manifestSha256": "4620e5ba6a6523b1cab7169ddd05909ec37cb76caad38ef89e3a556332967870"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 672,
+      "name": "Razer Blade 18",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_672_0.json",
+      "manifestSha256": "334c9a58524b7df096c3705dfc2b166318ef36bfa22f35ce3739445d4406f254"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 694,
+      "name": "Razer Blade 14",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_694_0.json",
+      "manifestSha256": "e3e07d958a23d938c11990e138265013a7d4dd238d9d00946d300eb96ec0c0dc"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 695,
+      "name": "Razer Blade 16",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_695_0.json",
+      "manifestSha256": "25ddc7ee2e6dba68b796b105172dbcc6dddec6113fdbf20e86f6b600ef6a0c65"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 696,
+      "name": "Razer Blade 18",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_696_0.json",
+      "manifestSha256": "3bbd0e90f4ed4bf53c9dfdde73c64cfe4221ad2cc82584aa8b0cb66ebe1e99f8"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 709,
+      "name": "Razer Blade 14",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_709_0.json",
+      "manifestSha256": "18870806b936b0f7513919ad8d7c67f20ee1d926b76530caadb854302828bef4"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 710,
+      "name": "Razer Blade 16",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_710_0.json",
+      "manifestSha256": "a95d13f93341983390988bc3e6d7791791315e99c251a8cb6059319912de888c"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 711,
+      "name": "Razer Blade 18",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/lighting-engine/manifest/DeviceManifest_711_0.json",
+      "manifestSha256": "fdd5d817bf28f152b3df498ac6e908291993bbcc6939be4d86f94ad74f52a9f1"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 736,
+      "name": "Razer Blade 16",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/products/736/mw/lighting-manifests/DeviceManifest_736_0.json",
+      "manifestSha256": "77b05b4232dfab314daab32ad4b6ece5159ae67b41bb136db0a2d0c66e2f2e9e"
+    },
+    {
+      "vendorId": 5426,
+      "productId": 737,
+      "name": "Razer Blade 18",
+      "category": "SYSTEM",
+      "sourceUrl": "https://apps.razer.com/synapse/products/737/mw/lighting-manifests/DeviceManifest_737_0.json",
+      "manifestSha256": "f8b0b83e88e3b5a6bc181ba7ecac5806046e6a31068a6e5e4fb24a59ad4e25d9"
+    }
+  ]
+}

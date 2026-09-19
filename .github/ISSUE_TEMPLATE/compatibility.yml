@@ -1,0 +1,18 @@
+name: Patch compatibility problem
+description: Report a preparation, apply, or restore failure
+title: "Compatibility: "
+body:
+  - type: textarea
+    id: diagnostic
+    attributes:
+      label: Sanitized diagnostic report
+      description: Paste the Markdown report printed by the tool or saved in diagnostics. Do not attach vendor archives, raw captures, or device serials.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened?
+      description: Describe the action you attempted and what you expected.
+    validations:
+      required: true
