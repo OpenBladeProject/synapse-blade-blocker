@@ -6,7 +6,7 @@ Keep Razer Synapse available for your mouse, keyboard and other peripherals whil
 
 ## Download and requirements
 
-Download and extract [Synapse Blade Blocker 0.1.0](https://github.com/OSSBlade/synapse-blade-blocker/releases/tag/v0.1.0). Keep the extracted folder: it holds your prepared originals and is needed for later restore operations.
+The latest published command-line package is [Synapse Blade Blocker 0.1.0](https://github.com/OSSBlade/synapse-blade-blocker/releases/tag/v0.1.0). The standalone window described below is new in the unreleased 0.2.0 source. Download or clone this revision to try it. Keep the extracted folder: it holds your prepared originals and is needed for later restore operations.
 
 Requires Windows, Windows PowerShell 5.1 or PowerShell 7, and Node.js 22 or newer. There are no npm dependencies. Synapse must already be installed; Razer software and patched vendor archives are not included. Administrator access is needed only when applying or restoring the installed archive.
 
@@ -17,6 +17,22 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Vers
 ```
 
 There is **no Synapse version or executable-hash allowlist**. Each installed build is prepared from its own original archive. Preparation requires every structural edit to match exactly once, checks JavaScript syntax, and verifies untouched packed files byte-for-byte. Changed or incomplete layouts stop preparation and produce a sanitized issue report. Successful preparation is evidence that the edits fit that build, not proof of complete hardware isolation.
+
+## Patch or restore with the window
+
+Double-click **Start-BladeBlocker.cmd** in the extracted source folder. The window detects Synapse and checks its current state without administrator access.
+
+1. Exit Synapse and keep its updater closed. If OpenBlade is running, use **Settings > Shut down OpenBlade**.
+2. Choose **Patch**. The window prepares a compatible archive when needed, retains the original, and requests administrator permission to apply it. Review and accept the Windows prompt to continue.
+3. Wait for the verified result before launching Synapse normally. Let it finish loading and check your peripheral before starting OpenBlade.
+
+To undo, close Synapse and shut down OpenBlade again, open the same blocker folder, and choose **Restore**. Keep that folder and its preparations: restoration needs a verified matching original. If you moved to a new blocker folder, use the preparation-folder selector to locate your earlier preparation.
+
+The window stays responsive during checks and preparation. It explains missing prerequisites, running controllers, missing backups, and changed installations. Cancelling administrator permission leaves the installed archive unchanged. Neither action stops or restarts applications automatically. Only the selected Apply or Restore operation runs elevated; the window stays at normal integrity.
+
+After a Synapse update, refresh the status and prepare the new original build. Do not reuse an older backup for a changed installation. If an operation fails, follow the displayed recovery instructions and use **Copy diagnostic** for a sanitized report. Keep backups if replacement cannot be verified, and do not launch Synapse until the installation is reconciled.
+
+The existing PowerShell commands remain available below.
 
 ## Prepare the patch
 
@@ -46,7 +62,7 @@ Exit Synapse and shut down OpenBlade through its Settings page. Run Apply from a
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Mode Apply
 ```
 
-Confirm `Success: True` and `ToolVersion: 0.1.0`, then launch Synapse normally. Status, preparation, Apply, and Restore success output all report the same package-backed tool version. The helper verifies the original rollback archive, stages the patch, checks for a concurrent update, atomically replaces `app.asar`, preserves a unique installation backup, verifies the result, and then writes `resources/synapse-blade-blocker.json`.
+Confirm `Success: True` and a `ToolVersion` matching your package, then launch Synapse normally. Status, preparation, Apply, and Restore success output all report the same package-backed tool version. The helper verifies the original rollback archive, stages the patch, checks for a concurrent update, atomically replaces `app.asar`, preserves a unique installation backup, verifies the result, and then writes `resources/synapse-blade-blocker.json`.
 
 Let Synapse finish loading, open a peripheral's page, and check that the peripheral works and the Blade is absent. Then start OpenBlade if you use it. If you see unexpected behavior, restore the original archive and report the issue below.
 
