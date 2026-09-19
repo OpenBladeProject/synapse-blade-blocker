@@ -41,6 +41,3 @@ if((Read-Hash $target) -ne $current -or (Read-Hash $exe) -ne $exeHash){throw 'In
 [IO.File]::Replace($stage,$target,$backup)
 if((Read-Hash $target) -ne $wanted -or (Read-Hash $backup) -ne $current -or (Read-Hash $exe) -ne $exeHash){throw "Replacement verification failed. Do not launch Synapse. Preserved backup: $backup"}
 [pscustomobject]@{Mode=$Mode;Success=$true;ArchiveSha256=$wanted;Backup=$backup;OpenBladeConflictBypass=$false}
-
-
-

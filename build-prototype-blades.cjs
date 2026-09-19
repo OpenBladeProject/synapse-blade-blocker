@@ -52,5 +52,3 @@ const result=Buffer.concat([prefix,...payload]);fs.writeFileSync(path.join(root,
 const newBase=8+result.readUInt32LE(4),newHeader=JSON.parse(result.subarray(16,16+result.readUInt32LE(12)));let verified=0;
 for(const {path:name,entry:e} of files){if(e.unpacked||e.link||changed.has(name))continue;let n=newHeader;for(const p of name.split('/'))n=n.files[p];const a=archive.subarray(base+Number(e.offset),base+Number(e.offset)+e.size),b=result.subarray(newBase+Number(n.offset),newBase+Number(n.offset)+n.size);if(!a.equals(b))throw Error('Untouched file changed: '+name);verified++;}
 const report={sourceVersion:meta.version,originalAsarSha256:sha(archive),patchedAsarSha256:sha(result),untouchedPackedFilesVerified:verified,changes,installedFilesModified:false,appLaunched:false};fs.writeFileSync(path.join(root,'patch-manifest-blades.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
-
-
