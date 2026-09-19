@@ -30,7 +30,7 @@ To undo, close Synapse and shut down OpenBlade again, open the same blocker fold
 
 The window stays responsive during checks and preparation. It explains missing prerequisites, running controllers, missing backups, and changed installations. Cancelling administrator permission leaves the installed archive unchanged. Neither action stops or restarts applications automatically. Only the selected Apply or Restore operation runs elevated; the window stays at normal integrity.
 
-After a Synapse update, refresh the status and prepare the new original build. Do not reuse an older backup for a changed installation. If an operation fails, follow the displayed recovery instructions and use **Copy diagnostic** for a sanitized report. Keep backups if replacement cannot be verified, and do not launch Synapse until the installation is reconciled.
+After a Synapse update, refresh the status and prepare the new original build. Do not reuse an older backup for a changed installation. If an operation fails, expand **Backups and diagnostics**. Use **Copy diagnostic details** for sanitized status or **Open saved reports** for compatibility reports from preparation or archive replacement. Follow the displayed recovery instructions. Keep backups if replacement cannot be verified, and do not launch Synapse until the installation is reconciled.
 
 The existing PowerShell commands remain available below.
 
