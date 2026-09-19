@@ -1,0 +1,5 @@
+* text=auto eol=lf
+*.ps1 text eol=crlf
+# These two embedded modules must retain their reviewed bytes for exact output hashes.
+device-exclusion-universal.cjs text eol=crlf
+native-exclusion-universal.cjs text eol=crlf

@@ -1,0 +1,9 @@
+*.asar
+patched-blades/
+node_modules/
+*.pcap
+*.pcapng
+*.etl
+*.pml
+*.log
+patch-manifest-blades.json
