@@ -52,7 +52,7 @@ After the user exited both applications, Restore recovered the exact original ar
 
 Core validation included a warning-free solution build, 6,475 passing solution tests, formatting verification, exact-commit LocalDev packaging and upgrade checks, and 136 installer UI tests. Developer sparse-identity assertions passed with explicit resolution of the installed NuGet SDK tools. Hosted checks were blocked before starting by organization billing; local results are separate evidence.
 
-## Standalone window validation (0.2.0, unreleased)
+## Standalone window validation (0.2.0)
 
 The desktop workflow adds no new archive replacement implementation. `BladeBlocker.Desktop.ps1` prepares and inspects through the existing scripts and invokes a fixed Apply/Restore helper only after a user action. It rechecks the installed state after the helper exits.
 
@@ -60,7 +60,7 @@ On 2026-09-19, source tests (16), local module tests (88), existing scratch oper
 
 WPF rendering and the real asynchronous Refresh path passed at 680 and 560 logical pixels wide. The read-only installed inspection reported the original AppEngine 4.0.823 archive, and correctly disabled mutation while controllers were running. Hidden-console launch flags left the WPF window visible. The Windows automation tool did not expose this PowerShell-hosted window, so visual inspection used rendered WPF screenshots, not automated clicks.
 
-An attended UAC, Patch, and Restore trial through the new window remains pending. The prior command-line trial does not establish that GUI lifecycle. No installed archive, marker, or controller state was changed during desktop development validation.
+On 2026-09-20, after merging PR #7, the user confirmed that the attended UAC, Patch, and Restore window trial succeeded. This is user-reported evidence; Codex did not independently observe that trial. No installed archive, marker, or controller state was changed during automated desktop development validation.
 
 Developer checks:
 
@@ -75,3 +75,17 @@ powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File .\BladeBlocker.UI.p
 Archive inspection follow-up: the installed 4.0.823 archive contained no blocker root modules or recognized inserted hooks, independently of the saved-original hash comparison. Detection follows active ASAR header entries so unused payload bytes do not count as an installed patch. Archive inspection is informational; it does not create applied metadata or supply a missing restore backup.
 
 The content-detection follow-up passed 21 source tests, including original/current/legacy/partial archive fixtures, unused payload bytes, malformed bounds, and the scanner CLI contract. Preserved earlier patched archives were recognized as legacy; the current prepared patch was recognized as current. Desktop and scratch operation checks passed in both PowerShell editions, and the read-only window displayed "No blocker edits detected" for the installed archive.
+
+## 0.2.1 release verification
+
+On 2026-09-20, merged product revision 17744132ac7feb921b7eab15206a1df31319559e passed all 21 source tests and scratch operation and desktop suites in Windows PowerShell 5.1.26100.9444 and PowerShell 7.6.5. PowerShell syntax checks passed. A fresh preparation from the preserved AppEngine 4.0.823 original verified 10,059 untouched packed entries and passed all 88 local-module checks. The installed archive was already patched; preparation correctly rejected it as an original, and its hash remained unchanged during verification.
+
+A read-only WPF smoke check completed real asynchronous inspection at the 560-pixel minimum width and correctly reported the installed patch with mutations disabled while controllers were running. Hosted CI did not start because of account billing; these local checks are the release evidence.
+
+Claude Fable completed a read-only review of the 0.1.0-to-merged-0.2.0 changes. Codex confirmed and fixed the asynchronous installation-selection race and improved backup recovery and unreadable-archive guidance. The regression dispatches the actual UI worker against two synthetic installation versions and verifies that the selected older installation is retained.
+
+Suggestions to bypass stale markers, remove fresh integrity checks, stop an in-flight replacement on window close, or refactor duplicated logic were not adopted: no matching original or complete isolation is established by content inspection, and interruption or stale hashes would weaken recovery and write safety. Speculative Node executable-resolution differences were not treated as confirmed defects. The attended window trial above applies to PR #7; subsequent fixes are covered by automated regression and read-only window checks.
+
+A hostless Windows PowerShell 5.1 reproduction confirmed that native stderr could terminate otherwise successful Node calls before exit-code handling, including calls with stderr redirected. The shared Node boundary now scopes Continue to native execution, captures the exit code, and restores the caller preference. Dedicated native-process regressions exercise the asynchronous PowerShell runspace and failure diagnostics; normal CLI exit checks and archive hash verification remain required. Run them with `npm run test:native-process`.
+
+The final 0.2.1 candidate passed the dedicated native-process suite in Windows PowerShell 5.1 and PowerShell 7, all 21 source tests, all 88 prepared-module tests, both operation/desktop suites, syntax and line-ending checks, and the revised window's read-only asynchronous inspection at minimum width.

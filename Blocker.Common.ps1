@@ -1,4 +1,18 @@
 $ErrorActionPreference='Stop'
+function Invoke-BlockerNode([string[]]$Arguments,[switch]$DiscardStandardError) {
+ $node=Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1
+ if(!$node){throw 'Node.js is unavailable.'}
+ $previousPreference=$ErrorActionPreference
+ try {
+  # WinPS 5.1 hostless runspaces convert native stderr to ErrorRecords. A
+  # diagnostic is not an exit failure; decide from the captured native code.
+  $ErrorActionPreference='Continue'
+  if($DiscardStandardError){$output=@(& $node.Source @Arguments 2>$null)}
+  else{$output=@(& $node.Source @Arguments)}
+  $exitCode=$LASTEXITCODE
+ }finally{$ErrorActionPreference=$previousPreference}
+ [pscustomobject]@{Output=$output;ExitCode=$exitCode}
+}
 function Get-ToolVersion {
  $package=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'package.json') -Raw | ConvertFrom-Json
  $version=[string]$package.version
@@ -114,11 +128,9 @@ function Set-BlockerArchive([string]$Target,[string]$Executable,[string]$Directo
 function Get-ArchiveInspection([string]$Archive,[string]$ExpectedHash) {
  $unavailable=[pscustomobject]@{State='Unreadable';ArchiveSha256=$null;Evidence=@()}
  try {
-  $node=Get-Command node -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
-  if(!$node){return $unavailable}
-  $json=& $node.Source (Join-Path $PSScriptRoot 'inspect-archive.cjs') $Archive 2>$null
-  if($LASTEXITCODE -ne 0){return $unavailable}
-  $inspection=($json -join [Environment]::NewLine) | ConvertFrom-Json
+  $process=Invoke-BlockerNode -Arguments @((Join-Path $PSScriptRoot 'inspect-archive.cjs'),$Archive) -DiscardStandardError
+  if($process.ExitCode -ne 0){return $unavailable}
+  $inspection=($process.Output -join [Environment]::NewLine) | ConvertFrom-Json
   if($inspection.State -notin @('CurrentPatch','LegacyPatch','PartialPatch','NoPatchDetected','Unreadable') -or $inspection.ArchiveSha256 -cne $ExpectedHash){return $unavailable}
   return $inspection
  }catch{return $unavailable}
