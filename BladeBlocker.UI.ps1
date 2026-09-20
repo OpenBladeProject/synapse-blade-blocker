@@ -84,8 +84,11 @@ function Start-DesktopTask([string]$Action) {
  if($script:desktopJob){return}
  Set-DesktopBusy $true
  $controls.NoticeText.Text=switch($Action){'Patch'{'Preparing and checking files, then requesting administrator approval. Keep this window open.'};'Restore'{'Checking the original backup, then requesting administrator approval. Keep this window open.'};default{'Refreshing read-only status...'}}
+ # Pin mutation to the installation shown when the user confirmed the action.
+ $installation=if($Action -eq 'Refresh'){''}elseif($script:desktopResult){$script:desktopResult.Installation}else{''}
+ if($Action -ne 'Refresh' -and !$installation){$controls.NoticeText.Text='Refresh to select an installation before continuing.';Set-DesktopBusy $false;return}
  $powershell=[PowerShell]::Create()
- [void]$powershell.AddScript({param($Root,$Action,$Preparation) . (Join-Path $Root 'BladeBlocker.Desktop.ps1'); Invoke-DesktopTask -Action $Action -PreparationDirectory $Preparation}).AddArgument($PSScriptRoot).AddArgument($Action).AddArgument($script:selectedPreparation)
+ [void]$powershell.AddScript({param($Root,$Action,$Preparation,$Installation) . (Join-Path $Root 'BladeBlocker.Desktop.ps1'); Invoke-DesktopTask -Action $Action -PreparationDirectory $Preparation -InstallDirectory $Installation}).AddArgument($PSScriptRoot).AddArgument($Action).AddArgument($script:selectedPreparation).AddArgument($installation)
  try{$handle=$powershell.BeginInvoke();$script:desktopJob=[pscustomobject]@{PowerShell=$powershell;Handle=$handle}}
  catch{$powershell.Dispose();$controls.NoticeText.Text='Could not start the operation. Reopen the window and try again.';Set-DesktopBusy $false}
 }

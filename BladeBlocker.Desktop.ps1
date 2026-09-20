@@ -21,8 +21,9 @@ function Get-DesktopActions([string]$State,[bool]$MarkerPresent,[bool]$BackupVal
 function Get-DesktopState([string]$PreparationDirectory,[string]$InstallDirectory) {
  $result=[ordered]@{ToolVersion=(Get-ToolVersion);State='Unavailable';DisplayState='Inspection unavailable';ContentState='Unreadable';ArchiveInspection=$null;Installation=$null;PreparationDirectory=$PreparationDirectory;MarkerPresent=$false;BackupValid=$false;PatchValid=$false;NodeReady=$false;NodeVersion='Unavailable';ControllersStopped=$false;ArchiveSha256=$null;ExecutableSha256=$null;AppliedMetadataMatches=$false;CanPatch=$false;CanRestore=$false;CanPrepare=$false;Message=''}
  try{
-  $node=Get-Command node -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
-  if($node){$v=[string](& $node.Source --version 2>$null);if($LASTEXITCODE -eq 0 -and $v -match '^v(\d+)\.\d+\.\d+$'){$result.NodeVersion=$v;$result.NodeReady=[int]$Matches[1] -ge 22}}
+  $process=Invoke-BlockerNode -Arguments @('--version') -DiscardStandardError
+  $v=[string]($process.Output -join '')
+  if($process.ExitCode -eq 0 -and $v -match '^v(\d+)\.\d+\.\d+$'){$result.NodeVersion=$v;$result.NodeReady=[int]$Matches[1] -ge 22}
  }catch{}
  try{
   $install=Resolve-AppEngine $InstallDirectory
@@ -55,8 +56,12 @@ function Get-DesktopState([string]$PreparationDirectory,[string]$InstallDirector
   $notes=New-Object 'System.Collections.Generic.List[string]'
   if($result.ContentState -in @('CurrentPatch','LegacyPatch')){$notes.Add('Blocker modules and hooks were detected inside the archive, independently of local patch records.');if($result.State -ne 'Experimental blocker applied'){$notes.Add('To restore, choose a preparation with a verified matching original. Detection alone cannot reconstruct the original or authorize replacement.')}}
   elseif($result.ContentState -eq 'PartialPatch'){$notes.Add('Some blocker edits are present, but the complete known patch could not be confirmed. Patch is disabled. Keep existing backups and inspect the saved diagnostic details.')}
-  elseif($result.ContentState -eq 'Unreadable'){$notes.Add('Archive contents could not be inspected. A backup hash match does not prove an unmodified vendor archive. Install Node.js 22 or newer if needed and Refresh.')}
-  if($result.State -eq 'No matching preparation' -and $result.MarkerPresent){$notes.Add('Applied metadata exists, but its matching preparation is unavailable. Choose the original preparation folder. Patch and Restore are disabled to protect the current archive.')}
+  elseif($result.ContentState -eq 'Unreadable'){
+   $notes.Add('Archive contents could not be inspected. A backup hash match does not prove an unmodified vendor archive.')
+   if($result.NodeReady){$notes.Add('Node.js is available, but the archive may be unreadable or its layout unsupported. Refresh after any Synapse update finishes. If inspection still fails, copy diagnostic details for a compatibility issue; keep all backups.')}
+   else{$notes.Add('Install Node.js 22 or newer and reopen this window, then Refresh.')}
+  }
+  if($result.State -eq 'No matching preparation' -and $result.MarkerPresent){$notes.Add('Applied metadata exists, but its matching preparation is unavailable. Choose the original preparation folder. If Synapse updated or was manually restored, preserve all backups and seek recovery help; do not remove metadata to bypass this check. Patch and Restore are disabled to protect the current archive.')}
   elseif($result.State -eq 'Unknown archive' -or ($result.State -eq 'No matching preparation' -and $PreparationDirectory)){$notes.Add('This preparation does not match the installed files. Synapse may have updated. Choose a matching preparation or use Automatic to inspect the current installation; keep all older backups.')}
   elseif($result.State -eq 'Experimental blocker applied'){$notes.Add('The archive matches a local patched preparation. Restart Synapse manually after closing this tool, then check OpenBlade.');if(!$result.AppliedMetadataMatches){$notes.Add('Applied metadata is missing or does not match. Restore the verified original before patching again.')}}
   elseif($result.State -eq 'Original'){$notes.Add('The saved original matches this archive.')}
@@ -79,6 +84,7 @@ function ConvertTo-DesktopDiagnostic($State,[string]$Outcome='Inspection') {
 function Invoke-DesktopTask([ValidateSet('Refresh','Patch','Restore')][string]$Action,[string]$PreparationDirectory,[string]$InstallDirectory) {
  $notice='';$outcome='Inspection'
  $state=Get-DesktopState $PreparationDirectory $InstallDirectory
+ if(!$InstallDirectory){$InstallDirectory=$state.Installation}
  if($Action -ne 'Refresh'){
   try{
    if($Action -eq 'Patch'){
@@ -98,7 +104,8 @@ function Invoke-DesktopTask([ValidateSet('Refresh','Patch','Restore')][string]$A
    $exitCode=$process.ExitCode
    $state=Get-DesktopState $state.PreparationDirectory $state.Installation
    $verified=if($Action -eq 'Patch'){$state.State -eq 'Experimental blocker applied' -and $state.AppliedMetadataMatches -and $state.BackupValid}else{$state.State -eq 'Original' -and !$state.MarkerPresent -and $state.BackupValid}
-   if($exitCode -ne 0 -or !$verified){$outcome='VerificationRequired';$notice='The operation did not complete with verified success. Do not restart Synapse yet. Inspect the status below and keep all preparations and backups.'}
+   if($exitCode -ne 0 -or !$verified){$outcome='VerificationRequired';$notice='The operation did not complete with verified success. Do not restart Synapse yet. Inspect the status below and keep all preparations and backups.'
+    $notice+=' Preserve every app.asar.blade-blocker-backup-* file in '+(Join-Path $InstallDirectory 'resources')+' and the selected preparation folder. These local recovery locations are omitted from copied diagnostics.'}
    else{$outcome='Verified'+$Action;$notice=if($Action -eq 'Patch'){'Patch verified on disk. Restart Synapse manually, then check its status in OpenBlade. Keep this package and its prepared folder for Restore.'}else{'Original archive restored and verified; applied metadata removed. You can restart Synapse manually. All backups were preserved.'}}
   }catch{
    $cancelled=$false;$errorException=$_.Exception

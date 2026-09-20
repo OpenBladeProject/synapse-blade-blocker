@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## [0.2.0] - 2026-09-20
+## [0.2.1] - 2026-09-20
 
 ### Added
 
@@ -10,6 +10,8 @@
 
 ### Fixed
 
+- Preserve native exit-code handling and diagnostic reports when Node writes to stderr in the Windows PowerShell 5.1 desktop runspace. ([#10](https://github.com/OSSBlade/synapse-blade-blocker/pull/10))
+- Keep desktop actions on the installation shown at confirmation, and provide backup recovery locations and accurate inspection guidance. ([#10](https://github.com/OSSBlade/synapse-blade-blocker/pull/10))
 - Detect existing blocker edits from archive contents independently of local patch metadata, and distinguish content inspection from a saved-original hash match. ([#7](https://github.com/OSSBlade/synapse-blade-blocker/pull/7))
 
 ## [0.1.0] - 2026-09-19
@@ -23,4 +25,4 @@
 
 [0.1.0]: https://github.com/OSSBlade/synapse-blade-blocker/releases/tag/v0.1.0
 
-[0.2.0]: https://github.com/OSSBlade/synapse-blade-blocker/compare/v0.1.0...v0.2.0
+[0.2.1]: https://github.com/OSSBlade/synapse-blade-blocker/compare/v0.1.0...v0.2.1

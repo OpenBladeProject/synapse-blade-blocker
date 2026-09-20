@@ -76,8 +76,16 @@ Archive inspection follow-up: the installed 4.0.823 archive contained no blocker
 
 The content-detection follow-up passed 21 source tests, including original/current/legacy/partial archive fixtures, unused payload bytes, malformed bounds, and the scanner CLI contract. Preserved earlier patched archives were recognized as legacy; the current prepared patch was recognized as current. Desktop and scratch operation checks passed in both PowerShell editions, and the read-only window displayed "No blocker edits detected" for the installed archive.
 
-## 0.2.0 release verification
+## 0.2.1 release verification
 
 On 2026-09-20, merged product revision 17744132ac7feb921b7eab15206a1df31319559e passed all 21 source tests and scratch operation and desktop suites in Windows PowerShell 5.1.26100.9444 and PowerShell 7.6.5. PowerShell syntax checks passed. A fresh preparation from the preserved AppEngine 4.0.823 original verified 10,059 untouched packed entries and passed all 88 local-module checks. The installed archive was already patched; preparation correctly rejected it as an original, and its hash remained unchanged during verification.
 
 A read-only WPF smoke check completed real asynchronous inspection at the 560-pixel minimum width and correctly reported the installed patch with mutations disabled while controllers were running. Hosted CI did not start because of account billing; these local checks are the release evidence.
+
+Claude Fable completed a read-only review of the 0.1.0-to-merged-0.2.0 changes. Codex confirmed and fixed the asynchronous installation-selection race and improved backup recovery and unreadable-archive guidance. The regression dispatches the actual UI worker against two synthetic installation versions and verifies that the selected older installation is retained.
+
+Suggestions to bypass stale markers, remove fresh integrity checks, stop an in-flight replacement on window close, or refactor duplicated logic were not adopted: no matching original or complete isolation is established by content inspection, and interruption or stale hashes would weaken recovery and write safety. Speculative Node executable-resolution differences were not treated as confirmed defects. The attended window trial above applies to PR #7; subsequent fixes are covered by automated regression and read-only window checks.
+
+A hostless Windows PowerShell 5.1 reproduction confirmed that native stderr could terminate otherwise successful Node calls before exit-code handling, including calls with stderr redirected. The shared Node boundary now scopes Continue to native execution, captures the exit code, and restores the caller preference. Dedicated native-process regressions exercise the asynchronous PowerShell runspace and failure diagnostics; normal CLI exit checks and archive hash verification remain required. Run them with `npm run test:native-process`.
+
+The final 0.2.1 candidate passed the dedicated native-process suite in Windows PowerShell 5.1 and PowerShell 7, all 21 source tests, all 88 prepared-module tests, both operation/desktop suites, syntax and line-ending checks, and the revised window's read-only asynchronous inspection at minimum width.

@@ -66,6 +66,19 @@ const json=Buffer.from(JSON.stringify(h)),aligned=Math.ceil(json.length/4)*4,hea
  $m | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $prep 'preparation.json')
  $s=Get-DesktopState $prep $install
  Assert ($s.NodeReady -and $s.State -eq 'Original' -and $s.CanPatch -and !$s.CanRestore -and $s.ContentState -eq 'NoPatchDetected') 'Independent archive inspection or multiple Node resolution failed'
+ # A newer installation appearing after Refresh must not redirect a queued action.
+ $newer=Join-Path $env:ProgramFiles 'Razer\RazerAppEngine\app-99.2.0'
+ New-Item -ItemType Directory -Path (Join-Path $newer 'resources') -Force | Out-Null
+ Copy-Item -LiteralPath $target -Destination (Join-Path $newer 'resources\app.asar')
+ Copy-Item -LiteralPath $exe -Destination $newer
+ Assert ((Resolve-AppEngine '') -eq $newer) 'New installation was not selected by automatic discovery'
+ $uiAst=[System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'BladeBlocker.UI.ps1'),[ref]$null,[ref]$null)
+ $dispatchAst=$uiAst.Find({param($node) $node -is [System.Management.Automation.Language.ScriptBlockExpressionAst] -and $node.Extent.Text.Contains('param($Root,$Action,$Preparation,$Installation)')},$true)
+ Assert ($null -ne $dispatchAst) 'UI dispatch does not carry the confirmed installation'
+ $dispatch=$dispatchAst.ScriptBlock.GetScriptBlock()
+ # An explicit missing preparation guarantees no write admission or elevation.
+ $queued=& $dispatch $PSScriptRoot 'Patch' (Join-Path $scratch 'missing-preparation') $install
+ Assert ($queued.State.Installation -eq $install -and $queued.Outcome -eq 'OperationFailed') 'Queued UI action switched to the newer installation'
  $scan=Get-ArchiveInspection $target ('f'*64)
  Assert ($scan.State -eq 'Unreadable') 'Inspection ignored an archive hash change'
  Set-BlockerArchive $target $exe $prep Apply | Out-Null
@@ -80,6 +93,7 @@ const json=Buffer.from(JSON.stringify(h)),aligned=Math.ceil(json.length/4)*4,hea
  [IO.File]::WriteAllText($target,'vendor update')
  $s=Get-DesktopState $prep $install
  Assert (!$s.CanPatch -and !$s.CanRestore -and $s.State -eq 'Unknown archive') 'Vendor update enabled mutation'
+ Assert ($s.NodeReady -and $s.Message -match 'layout unsupported' -and $s.Message -notmatch 'Install Node.js') 'Unreadable archive misdiagnosed a working Node runtime'
 }finally{
  $env:ProgramFiles=$originalProgramFiles
  Remove-Item Function:\Get-Command,Function:\Get-Process,Function:\Get-Service
@@ -121,6 +135,7 @@ $r=Run-Case $patched $original Restore
 Assert ($r.Outcome -eq 'VerifiedRestore') 'Restore verification failed'
 $r=Run-Case $original $original Patch
 Assert ($r.Outcome -eq 'VerificationRequired') 'Exit zero without patched readback claimed success'
+Assert ($r.Notice.Contains('app.asar.blade-blocker-backup-*') -and $r.Notice.Contains((Join-Path $original.Installation 'resources'))) 'Failed verification omitted local backup recovery location'
 $r=Run-Case $patched $patched Restore
 Assert ($r.Outcome -eq 'VerificationRequired') 'Restore with marker remaining claimed success'
 $r=Run-Case $original $patched Patch 1
