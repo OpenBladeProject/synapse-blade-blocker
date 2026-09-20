@@ -1,12 +1,13 @@
 {
   "name": "synapse-blade-blocker",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Experimental Blade exclusion for Razer Synapse",
   "scripts": {
-    "test": "node --test policy.test.cjs preparation.test.cjs failure-report.test.cjs",
+    "test": "node --test policy.test.cjs preparation.test.cjs failure-report.test.cjs inspect-archive.test.cjs",
     "test:local": "node --test blade-wrappers.test.cjs blade-native-guard.test.cjs blade-observation.test.cjs native-startup.test.cjs electron-action-guard.test.cjs service-route-guard.test.cjs",
-    "test:operations": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File operations.test.ps1"
+    "test:operations": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File operations.test.ps1",
+    "test:desktop": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File desktop.test.ps1"
   },
   "engines": {
     "node": ">=22"

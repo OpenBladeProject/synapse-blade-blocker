@@ -109,3 +109,17 @@ function Set-BlockerArchive([string]$Target,[string]$Executable,[string]$Directo
  }elseif(Test-Path -LiteralPath $marker){Remove-Item -LiteralPath $marker}
  [pscustomobject]@{ToolVersion=(Get-ToolVersion);Mode=$Mode;Success=$true;ArchiveSha256=$wanted;Backup=$backup;PreparationDirectory=$Directory;AppliedMetadata=($Mode -eq 'Apply')}
 }
+
+# Content inspection is independent evidence, never backup or write authorization.
+function Get-ArchiveInspection([string]$Archive,[string]$ExpectedHash) {
+ $unavailable=[pscustomobject]@{State='Unreadable';ArchiveSha256=$null;Evidence=@()}
+ try {
+  $node=Get-Command node -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+  if(!$node){return $unavailable}
+  $json=& $node.Source (Join-Path $PSScriptRoot 'inspect-archive.cjs') $Archive 2>$null
+  if($LASTEXITCODE -ne 0){return $unavailable}
+  $inspection=($json -join [Environment]::NewLine) | ConvertFrom-Json
+  if($inspection.State -notin @('CurrentPatch','LegacyPatch','PartialPatch','NoPatchDetected','Unreadable') -or $inspection.ArchiveSha256 -cne $ExpectedHash){return $unavailable}
+  return $inspection
+ }catch{return $unavailable}
+}

@@ -51,3 +51,27 @@ At 17:08 UTC on September 19, 2026, Synapse had finished loading and its delayed
 After the user exited both applications, Restore recovered the exact original archive hash and removed the applied marker. OpenBlade's installed payload hashes remained unchanged; its service, one tray and one Session Agent were restarted, and final read-only status again showed no conflicts or unconfirmed writes. Synapse remained stopped. The blocker was not left applied.
 
 Core validation included a warning-free solution build, 6,475 passing solution tests, formatting verification, exact-commit LocalDev packaging and upgrade checks, and 136 installer UI tests. Developer sparse-identity assertions passed with explicit resolution of the installed NuGet SDK tools. Hosted checks were blocked before starting by organization billing; local results are separate evidence.
+
+## Standalone window validation (0.2.0, unreleased)
+
+The desktop workflow adds no new archive replacement implementation. `BladeBlocker.Desktop.ps1` prepares and inspects through the existing scripts and invokes a fixed Apply/Restore helper only after a user action. It rechecks the installed state after the helper exits.
+
+On 2026-09-19, source tests (16), local module tests (88), existing scratch operations, and new desktop regression checks passed. The PowerShell suites passed under Windows PowerShell 5.1 and PowerShell 7.6.5. Desktop coverage includes real scratch discovery and backup verification, multiple Node installations, Windows argument binding, fixed helper exit codes, automatic preparation, changed preconditions, cancellation, failed readback, and diagnostic privacy. Elevation is mocked or replaced with inert scratch scripts in these tests; they never modify installed files.
+
+WPF rendering and the real asynchronous Refresh path passed at 680 and 560 logical pixels wide. The read-only installed inspection reported the original AppEngine 4.0.823 archive, and correctly disabled mutation while controllers were running. Hidden-console launch flags left the WPF window visible. The Windows automation tool did not expose this PowerShell-hosted window, so visual inspection used rendered WPF screenshots, not automated clicks.
+
+An attended UAC, Patch, and Restore trial through the new window remains pending. The prior command-line trial does not establish that GUI lifecycle. No installed archive, marker, or controller state was changed during desktop development validation.
+
+Developer checks:
+
+```powershell
+npm run test:desktop
+powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File .\BladeBlocker.UI.ps1 -SmokeTest
+powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File .\BladeBlocker.UI.ps1 -SmokeTest -SmokeInspect -SmokeWidth 560
+```
+
+`-SmokeTest` constructs the window without inspecting Synapse. Optional `-SmokeInspect` exercises the actual asynchronous read-only refresh with a 30-second deadline. Smoke mode rejects Patch/Restore. Optional `-SmokeScreenshot <path>` saves a local render; keep screenshots containing local paths out of public reports.
+
+Archive inspection follow-up: the installed 4.0.823 archive contained no blocker root modules or recognized inserted hooks, independently of the saved-original hash comparison. Detection follows active ASAR header entries so unused payload bytes do not count as an installed patch. Archive inspection is informational; it does not create applied metadata or supply a missing restore backup.
+
+The content-detection follow-up passed 21 source tests, including original/current/legacy/partial archive fixtures, unused payload bytes, malformed bounds, and the scanner CLI contract. Preserved earlier patched archives were recognized as legacy; the current prepared patch was recognized as current. Desktop and scratch operation checks passed in both PowerShell editions, and the read-only window displayed "No blocker edits detected" for the installed archive.
