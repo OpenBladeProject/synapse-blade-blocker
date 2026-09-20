@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.2.0] - 2026-09-20
+
 ### Added
 
 - Add a standalone Windows window for verified patching and restoration, automatic preparation, backup recovery, and sanitized diagnostics. ([#7](https://github.com/OSSBlade/synapse-blade-blocker/pull/7))
@@ -20,3 +22,5 @@
 - Provide offline version reporting and package-backed versions in successful command output. ([#4](https://github.com/OSSBlade/synapse-blade-blocker/pull/4))
 
 [0.1.0]: https://github.com/OSSBlade/synapse-blade-blocker/releases/tag/v0.1.0
+
+[0.2.0]: https://github.com/OSSBlade/synapse-blade-blocker/compare/v0.1.0...v0.2.0

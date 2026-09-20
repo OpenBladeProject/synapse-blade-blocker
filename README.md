@@ -6,7 +6,7 @@ Keep Razer Synapse available for your mouse, keyboard and other peripherals whil
 
 ## Download and requirements
 
-The latest published command-line package is [Synapse Blade Blocker 0.1.0](https://github.com/OSSBlade/synapse-blade-blocker/releases/tag/v0.1.0). The standalone window described below is new in the unreleased 0.2.0 source. Download or clone this revision to try it. Keep the extracted folder: it holds your prepared originals and is needed for later restore operations.
+Download [Synapse Blade Blocker 0.2.0](https://github.com/OSSBlade/synapse-blade-blocker/releases/tag/v0.2.0) and extract the ZIP, then double-click **Start-BladeBlocker.cmd** to open the standalone window. The command-line workflow remains available. Keep the extracted folder: it holds your prepared originals and is needed for later restore operations.
 
 Requires Windows, Windows PowerShell 5.1 or PowerShell 7, and Node.js 22 or newer. There are no npm dependencies. Synapse must already be installed; Razer software and patched vendor archives are not included. Administrator access is needed only when applying or restoring the installed archive.
 
