@@ -86,7 +86,8 @@ const json=Buffer.from(JSON.stringify(h)),aligned=Math.ceil(json.length/4)*4,hea
  $nodeSource=(Microsoft.PowerShell.Core\Get-Command node -CommandType Application | Select-Object -First 1).Source
  & $nodeSource $archiveBuilder $archive
  Assert ($LASTEXITCODE -eq 0) 'Synthetic inspection archive construction failed'
- $archiveHash=(Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+ $sha=[Security.Cryptography.SHA256]::Create()
+ try{$archiveHash=[BitConverter]::ToString($sha.ComputeHash([IO.File]::ReadAllBytes($archive))).Replace('-','').ToLowerInvariant()}finally{$sha.Dispose()}
  $warningFixture=Join-Path $scratch 'preload-warning.cjs'
  [IO.File]::WriteAllText($warningFixture,"process.stderr.write('benign preload warning\n');")
  $powershell=[PowerShell]::Create()
