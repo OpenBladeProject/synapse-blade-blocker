@@ -1,22 +1,22 @@
 # Synapse Blade Blocker
 
-Keep Razer Synapse available for your mouse, keyboard and other peripherals while excluding recognized Razer Blade laptops from discovery and selected laptop-specific routes.
+Keep Razer Synapse for your mouse, keyboard, and other peripherals while blocking recognized Razer Blade laptops from discovery and selected laptop-specific routes.
 
-**Experimental:** the registry covers 40 reviewed Blade product IDs, but physical testing covers a Blade 16 and Pro Click V2. This is a reversible compatibility patch, not a security-isolation tool or a guarantee for every laptop and peripheral.
+This experimental, reversible patch covers 40 reviewed Blade product IDs. Physical testing covers a Blade 16 and Pro Click V2; other laptop and peripheral combinations remain unverified. The patch does not provide security isolation.
 
 ## Download and requirements
 
-Download [Synapse Blade Blocker 0.2.1](https://github.com/OSSBlade/synapse-blade-blocker/releases/tag/v0.2.1) and extract the ZIP, then double-click **Start-BladeBlocker.cmd** to open the standalone window. The command-line workflow remains available. Keep the extracted folder: it holds your prepared originals and is needed for later restore operations.
+Download [Synapse Blade Blocker 0.2.1](https://github.com/OSSBlade/synapse-blade-blocker/releases/tag/v0.2.1) and extract the ZIP. Keep the extracted folder: it holds the prepared originals needed to restore Synapse.
 
-Requires Windows, Windows PowerShell 5.1 or PowerShell 7, and Node.js 22 or newer. There are no npm dependencies. Synapse must already be installed; Razer software and patched vendor archives are not included. Administrator access is needed only when applying or restoring the installed archive.
+You need Windows, Windows PowerShell 5.1 or PowerShell 7, Node.js 22 or newer, and an existing Synapse installation. There are no npm dependencies. The download contains no Razer software or patched vendor archives. Only applying or restoring the installed archive needs administrator access.
 
-Query the tool version offline; this command does not require Synapse, Node.js, installation discovery, or administrator access:
+To check the tool version offline, run the following command. It works without Synapse, Node.js, installation discovery, or administrator access:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Version
 ```
 
-There is **no Synapse version or executable-hash allowlist**. Each installed build is prepared from its own original archive. Preparation requires every structural edit to match exactly once, checks JavaScript syntax, and verifies untouched packed files byte-for-byte. Changed or incomplete layouts stop preparation and produce a sanitized issue report. Successful preparation is evidence that the edits fit that build, not proof of complete hardware isolation.
+The tool prepares each installed build from its own original archive, without a Synapse version or executable-hash allowlist. Each structural edit must match exactly once. Preparation checks JavaScript syntax and verifies untouched packed files byte-for-byte. Changed or incomplete layouts stop preparation and produce a sanitized issue report. These checks establish that the edits fit the build.
 
 ## Patch or restore with the window
 
@@ -26,15 +26,15 @@ Double-click **Start-BladeBlocker.cmd** in the extracted source folder. The wind
 2. Choose **Patch**. The window prepares a compatible archive when needed, retains the original, and requests administrator permission to apply it. Review and accept the Windows prompt to continue.
 3. Wait for the verified result before launching Synapse normally. Let it finish loading and check your peripheral before starting OpenBlade.
 
-To undo, close Synapse and shut down OpenBlade again, open the same blocker folder, and choose **Restore**. Keep that folder and its preparations: restoration needs a verified matching original. If you moved to a new blocker folder, use the preparation-folder selector to locate your earlier preparation.
+To undo, close Synapse and shut down OpenBlade, then open the same blocker folder and choose **Restore**. Restoration needs a verified matching original. If you moved to a new blocker folder, use the preparation-folder selector to find your earlier preparation.
 
-The window stays responsive during checks and preparation. It explains missing prerequisites, running controllers, missing backups, and changed installations. Cancelling administrator permission leaves the installed archive unchanged. Neither action stops or restarts applications automatically. Only the selected Apply or Restore operation runs elevated; the window stays at normal integrity.
+The window stays responsive during checks and preparation and explains missing prerequisites, running controllers, missing backups, and changed installations. Cancelling the administrator prompt leaves the installed archive unchanged. Apply and Restore do not stop or restart applications. Only the selected operation runs elevated; the window keeps normal user permissions.
 
 After a Synapse update, refresh the status and prepare the new original build. Do not reuse an older backup for a changed installation. If an operation fails, expand **Backups and diagnostics**. Use **Copy diagnostic details** for sanitized status or **Open saved reports** for compatibility reports from preparation or archive replacement. Follow the displayed recovery instructions. Keep backups if replacement cannot be verified, and do not launch Synapse until the installation is reconciled.
 
-The window also inspects the archive contents directly, so earlier blocker patches can be detected without an applied marker or a preparation folder. It distinguishes a recognized patch, incomplete or unfamiliar blocker traces, and no recognized blocker edits. An unreadable archive is not labeled clean. A backup hash match is reported separately and does not prove that a saved original was never modified. Recognition alone does not enable Restore: it still requires the matching verified original.
+The window inspects archive contents to detect earlier patches, even without an applied marker or preparation folder. It reports recognized patches, incomplete or unfamiliar blocker traces, or no recognized edits. Unreadable archives remain unknown. Backup hash matches are reported separately; they do not establish that a saved original was never modified. Restore always requires the matching verified original.
 
-The existing PowerShell commands remain available below.
+You can also use the PowerShell commands below.
 
 ## Prepare the patch
 
@@ -48,7 +48,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Mode
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Mode Apply -WhatIf
 ```
 
-Discovery prefers the exact active AppEngine process directory, otherwise the newest `app-VERSION` directory under `%ProgramFiles%\Razer\RazerAppEngine`. Both scripts accept `-InstallDirectory` for an explicit directory within that standard layout. Ambiguous active installations and reparse-point installation paths are refused.
+Discovery uses the exact active AppEngine process directory when available, or the newest `app-VERSION` directory under `%ProgramFiles%\Razer\RazerAppEngine`. Both scripts accept `-InstallDirectory` for an explicit directory within that standard layout. They reject ambiguous active installations and reparse-point installation paths.
 
 Each preparation creates a new ignored `prepared/<timestamp>-<id>/` folder with `original.asar`, `blocked.asar`, extracted patched modules, and `preparation.json`. The manifest records hashes of the actual source, executable, and output plus the embedded Blade registry IDs. Existing preparations, backups, and legacy local `original.asar` are preserved. Preparation only reads installed files.
 
@@ -70,11 +70,11 @@ Let Synapse finish loading, open a peripheral's page, and check that the periphe
 
 ## Using OpenBlade
 
-[OpenBlade 0.21.0 or newer](https://github.com/OSSBlade/openblade-core/releases/latest) recognizes the applied patch by checking the actual installed files and whether Synapse restarted after application. A missing, changed or stale patch retains normal conflict checks; merely having this tool on disk does not enable coexistence.
+[OpenBlade 0.21.0 or newer](https://github.com/OSSBlade/openblade-core/releases/latest) recognizes the applied patch by checking the actual installed files and whether Synapse restarted after application. Normal conflict checks remain in place when the patch is missing, changed, or stale. Downloading the blocker alone does not enable coexistence.
 
 Synapse may start its Windows lighting helper, `razerwdl`, after its UI loads. OpenBlade accepts that helper only when its identity and patched Synapse parent are verified and a fresh Windows device check finds no excluded Blade lighting interface. Unknown device identity, failed enumeration, independent helpers and other competing controllers retain their checks. This does not disable Windows lighting or peripheral features.
 
-The installed trial passed with Synapse AppEngine 4.0.823, the delayed helper running, and Pro Click V2 visible and working while the Blade stayed absent. OpenBlade showed no conflict warning. Other configurations still need user feedback. See [VALIDATION.md](VALIDATION.md) for the exact tested revisions and limits.
+The installed trial passed with Synapse AppEngine 4.0.823, the delayed helper running, and Pro Click V2 visible and working while the Blade stayed absent. OpenBlade showed no conflict warning. See [VALIDATION.md](VALIDATION.md) for the exact tested revisions and limits, and report your results on other configurations.
 
 ## Restore the original
 
@@ -85,9 +85,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Mode
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Mode Status
 ```
 
-Restore verifies and restores the matching original, then removes the applied marker. It does not need the patched archive. Repeated Apply/Restore calls are idempotent; Apply can recreate missing metadata after verifying an already-patched archive. Keep every local original and installation backup. Unknown archives or executable updates are preserved, never overwritten with an older build. Prepare a new original build after an update. No automatic repatching, process stopping, service installation, or driver installation occurs.
+Restore verifies the matching original, restores it, and removes the applied marker. It works without the patched archive. Repeating Apply or Restore has the same effect as running it once; Apply can recreate missing metadata after verifying an already-patched archive. Keep every local original and installation backup. The tool preserves unknown archives and executable updates instead of overwriting them with an older build. Prepare a new original build after an update. The tool does not automatically repatch Synapse, stop processes, or install services or drivers.
 
-Keep the updater closed during replacement: the final hash check detects an observed update, but is not a filesystem lock against an updater racing immediately afterward. If replacement verification fails, preserve the reported backup and do not launch Synapse until the installation has been reconciled.
+Keep the updater closed during replacement. The final hash check detects updates that have already happened; it cannot prevent an updater from changing files immediately afterward. If replacement verification fails, preserve the reported backup and do not launch Synapse until the installation has been reconciled.
 
 ## If a patch fails
 
@@ -96,8 +96,6 @@ Preparation, Apply, and Restore failures print a copyable Markdown diagnostic an
 Paste the report into a [compatibility issue](https://github.com/OSSBlade/synapse-blade-blocker/issues/new/choose) and describe what you were trying to do. Do not upload vendor archives or raw captures. The tool never submits an issue automatically.
 
 ## Applied metadata
-
-The applied metadata contract is:
 
 ```json
 {
@@ -110,11 +108,10 @@ The applied metadata contract is:
 }
 ```
 
-The IDs above are illustrative; the real marker contains all excluded numeric PIDs from the embedded registry. No paths are stored in the marker. An OpenBlade integration can verify the marker against the neighboring archive, parent executable, current process, and embedded registry. A missing or mismatched marker must disable recognition. The marker records an applied patch; it does not certify security isolation. Historical OpenBlade versions without that integration continue their normal conflict checks.
+The IDs above are illustrative; the real marker contains all excluded numeric PIDs from the embedded registry. No paths are stored in the marker. An OpenBlade integration can verify the marker against the neighboring archive, parent executable, current process, and embedded registry. A missing or mismatched marker must disable recognition. Historical OpenBlade versions without that integration continue their normal conflict checks.
 
 ## Evidence and limits
 
-- The registry includes 40 reviewed Blade product IDs; this is not a 40-model physical test matrix.
 - The historical Blade 16 `1532:02E0` trial suppressed observed 90-byte and 374-byte reports in startup/exit traces. Short System-context requests remained.
 - The user reported Pro Click V2 `1532:00D1` discovery, ordinary input, and requested customization checks working while the Blade was absent. This is user-reported evidence.
 - Shared native/host routes remain available. Complete isolation, other peripherals, sleep/resume, and hardware behavior on future builds remain unverified.
