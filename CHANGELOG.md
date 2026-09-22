@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Simplify the README around patching and restoring Synapse, with command-line and implementation details in a separate technical guide. ([#13](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/13))
+
 ## [0.2.1] - 2026-09-20
 
 ### Added
