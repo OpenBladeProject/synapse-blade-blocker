@@ -1,6 +1,6 @@
 # Validation record
 
-## Current version-independent preparation
+## Version-independent preparation: 2026-09-19
 
 September 19, 2026: dynamic discovery selected the installed AppEngine **4.0.823**. Preparation succeeded using its actual archive and executable without adding a supported-version entry or accepted hash. All 10,059 untouched packed entries were verified byte-for-byte. The original archive hash was `170d9fa0d146cd3f9a3d6d7d00a8c1fd221e1f85da34f7d385fe378d43d0c0af`, executable hash `dd18cb63ec4277a80800f78bfa700c03d01fc13a0a199de1e576bda76e1d3455`, and generated archive hash `77b9fe55076135b5344b3766b5e591a26ab9fe63ef0e637234924f4797cf56de`. These identify tested artifacts; no code gates compatibility on them.
 
@@ -40,7 +40,7 @@ Restoration recovered the exact original archive hash and removed the marker. Th
 
 The subsequent installed trial used blocker revision `50375ea6` (tool version 0.1.0) and OpenBlade core revision `7ce1b87c`. The initial status was clear, but Synapse later launched its `razerwdl` Windows lighting helper and OpenBlade displayed a conflict. This supersedes the initial snapshot as coexistence-readiness evidence and is tracked in [#5](https://github.com/OSSBlade/synapse-blade-blocker/issues/5). The original archive was restored by hash, its applied marker removed, and OpenBlade restarted with no detected competing controllers.
 
-The helper's parent argument identifies AppEngine and its session argument identifies an RPC session, not a mouse or laptop. Native inspection supports Windows LampArray as its observed device-access route; it does not establish that the archive patch filters the helper's native enumeration. A read-only Windows endpoint query found two Pro Click V2 LampArray interfaces and no Blade LampArray interface. Core is adding a narrow, fresh endpoint/provenance check; a final installed trial with the delayed helper running is still required. No helper version or historical binary hash is used as a compatibility allowlist.
+The helper's parent argument identifies AppEngine and its session argument identifies an RPC session, not a mouse or laptop. Native inspection supports Windows LampArray as its observed device-access route; it does not establish that the archive patch filters the helper's native enumeration. A read-only Windows endpoint query found two Pro Click V2 LampArray interfaces and no Blade LampArray interface. At that point, core needed a fresh endpoint/provenance check and an installed trial with the delayed helper running. The completed trial is recorded in the next section. No helper version or historical binary hash is used as a compatibility allowlist.
 
 ## Completed installed coexistence trial
 

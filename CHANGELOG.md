@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Update OpenBlade coexistence guidance for 0.24.3 and clarify the dated validation record. ([#15](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/15))
+
 - Simplify the README around patching and restoring Synapse, with command-line and implementation details in a separate technical guide. ([#13](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/13))
 
 ## [0.2.1] - 2026-09-20
