@@ -23,7 +23,7 @@ Keep the extracted folder. It holds the original files needed to restore Synapse
 3. Choose **Patch**. The tool saves the original files and checks whether it can patch your installed Synapse build. Accept the Windows administrator prompt when it appears.
 4. Wait for the tool to confirm success, then start Synapse normally. Check that your peripheral works and the Blade is absent from the device list before starting OpenBlade.
 
-Use [OpenBlade 0.21.0 or newer](https://github.com/OSSBlade/openblade-core/releases/latest). It checks the applied patch and Synapse restart before allowing them to run together.
+Use the [latest OpenBlade release](https://github.com/OSSBlade/openblade-core/releases/latest) for the current coexistence fixes. It checks the applied patch and Synapse restart before allowing them to run together.
 
 After a Synapse update, reopen the blocker, refresh its status, and prepare the updated installation before patching again. Keep the new originals; an older backup cannot restore a different build.
 

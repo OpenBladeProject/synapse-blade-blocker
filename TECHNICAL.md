@@ -1,6 +1,6 @@
 # Technical guide
 
-For downloading, patching, and restoring through the window, start with the [README](README.md). This guide covers the command-line workflow, compatibility checks, and OpenBlade integration.
+Use the [README](README.md) for the window workflow. The commands below prepare, apply, and restore the patch from PowerShell.
 
 ## Compatibility and status
 
@@ -10,11 +10,11 @@ To check the tool version offline, run the following command. It works without S
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Version
 ```
 
-The tool prepares each installed build from its own original archive, without a Synapse version or executable-hash allowlist. Each structural edit must match exactly once. Preparation checks JavaScript syntax and verifies untouched packed files byte-for-byte. Changed or incomplete layouts stop preparation and produce a sanitized issue report. These checks establish that the edits fit the build.
+The tool prepares each installed build from its own original archive, without a Synapse version or executable-hash allowlist. Each structural edit must match exactly once. Preparation checks JavaScript syntax and verifies untouched packed files byte-for-byte. Changed or incomplete layouts stop preparation and produce a sanitized issue report.
 
 The window stays responsive during checks and preparation and explains missing prerequisites, running controllers, missing backups, and changed installations. Cancelling the administrator prompt leaves the installed archive unchanged. Apply and Restore do not stop or restart applications. Only the selected operation runs elevated; the window keeps normal user permissions.
 
-After a Synapse update, refresh the status and prepare the new original build. Do not reuse an older backup for a changed installation. If an operation fails, expand **Backups and diagnostics**. Use **Copy diagnostic details** for sanitized status or **Open saved reports** for compatibility reports from preparation or archive replacement. Follow the displayed recovery instructions. Keep backups if replacement cannot be verified, and do not launch Synapse until the installation is reconciled.
+After a Synapse update, refresh the status and prepare the updated build. Do not reuse an older backup for a changed installation. If an operation fails, expand **Backups and diagnostics**. Use **Copy diagnostic details** for sanitized status or **Open saved reports** for compatibility reports from preparation or archive replacement. Follow the displayed recovery instructions. Keep backups if replacement cannot be verified, and do not launch Synapse until the installation is reconciled.
 
 The window inspects archive contents to detect earlier patches, even without an applied marker or preparation folder. It reports recognized patches, incomplete or unfamiliar blocker traces, or no recognized edits. Unreadable archives remain unknown. Backup hash matches are reported separately; they do not establish that a saved original was never modified. Restore always requires the matching verified original.
 
@@ -52,11 +52,13 @@ Let Synapse finish loading, open a peripheral's page, and check that the periphe
 
 ## Using OpenBlade
 
-[OpenBlade 0.21.0 or newer](https://github.com/OSSBlade/openblade-core/releases/latest) recognizes the applied patch by checking the actual installed files and whether Synapse restarted after application. Normal conflict checks remain in place when the patch is missing, changed, or stale. Downloading the blocker alone does not enable coexistence.
+[OpenBlade 0.21.0 or newer](https://github.com/OSSBlade/openblade-core/releases/latest) recognizes the applied patch by checking the actual installed files and whether Synapse restarted after application. Normal conflict checks remain in place when the patch is missing, changed, or stale. Use the latest release for subsequent coexistence fixes.
 
 Synapse may start its Windows lighting helper, `razerwdl`, after its UI loads. OpenBlade accepts that helper only when its identity and patched Synapse parent are verified and a fresh Windows device check finds no excluded Blade lighting interface. Unknown device identity, failed enumeration, independent helpers and other competing controllers retain their checks. This does not disable Windows lighting or peripheral features.
 
-The installed trial passed with Synapse AppEngine 4.0.823, the delayed helper running, and Pro Click V2 visible and working while the Blade stayed absent. OpenBlade showed no conflict warning. See [VALIDATION.md](VALIDATION.md) for the exact tested revisions and limits, and report your results on other configurations.
+OpenBlade 0.24.3 also allows HyperBoost with a verified blocker patch while known Synapse service aliases are present. The verified RGS service does not block HyperBoost; an unverified process using an RGS or updater name still does. A Windows lighting helper with verified Razer identity does not block HyperBoost either; the other controller checks, exact-device checks, and power requirements still apply. See the [core coexistence guide](https://github.com/OpenBladeProject/openblade-core/blob/v0.24.3/docs/synapse-blade-blocker.md) for the full rules.
+
+The September 2026 installed trial passed with Synapse AppEngine 4.0.823, the delayed helper running, and Pro Click V2 visible and working while the Blade stayed absent. OpenBlade showed no conflict warning. See [VALIDATION.md](VALIDATION.md) for the exact tested revisions and limits, and report your results on other configurations.
 
 ## Restore the original
 
@@ -67,7 +69,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Mode
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Mode Status
 ```
 
-Restore verifies the matching original, restores it, and removes the applied marker. It works without the patched archive. Repeating Apply or Restore has the same effect as running it once; Apply can recreate missing metadata after verifying an already-patched archive. Keep every local original and installation backup. The tool preserves unknown archives and executable updates instead of overwriting them with an older build. Prepare a new original build after an update. The tool does not automatically repatch Synapse, stop processes, or install services or drivers.
+Restore verifies the matching original, restores it, and removes the applied marker. It works without the patched archive. Repeating Apply or Restore has the same effect as running it once; Apply can recreate missing metadata after verifying an already-patched archive. Keep every local original and installation backup. The tool preserves unknown archives and executable updates instead of overwriting them with an older build. Prepare a new original build after an update. Repatching requires a user action. The tool leaves process control to the user and installs no services or drivers.
 
 Keep the updater closed during replacement. The final hash check detects updates that have already happened; it cannot prevent an updater from changing files immediately afterward. If replacement verification fails, preserve the reported backup and do not launch Synapse until the installation has been reconciled.
 
