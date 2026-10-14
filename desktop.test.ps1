@@ -232,6 +232,10 @@ try{
  $mockStateBody=${function:Get-DesktopState}
  . (Join-Path $scratch 'BladeBlocker.Desktop.ps1')
  Set-Item Function:\Get-DesktopState $mockStateBody
+ function Test-PreparedPatch([string]$Directory){return $Directory -eq "C:\private-user\original's backup"}
+ $reusable=New-State 'Original' $true $false $false;$reusable.CanPrepare=$true
+ $r=Run-Case $reusable $patched Patch
+ Assert ($r.Outcome -eq 'VerifiedPatch' -and $script:reads -eq 2 -and $script:starts -eq 1) 'A verified current preparation was copied again instead of reused'
  $unprepared=New-State 'No matching preparation' $true $false $false;$unprepared.CanPrepare=$true
  $script:snapshots=@($unprepared,$original,$patched);$script:reads=0;$script:starts=0;$script:exitCode=0;$script:cancel=$false
  $r=Invoke-DesktopTask Patch '' ''

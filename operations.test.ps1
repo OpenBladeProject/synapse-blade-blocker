@@ -25,6 +25,27 @@ try{
  Assert ((Get-BackupRoot) -eq $custom -and (Get-BackupSearchRoots) -contains $documents) 'Changing location lost the previous backup root'
  Set-BackupRoot $documents
  Assert ((Get-BackupSearchRoots) -contains $custom) 'Returning to Documents lost the custom backup root'
+ $unicode=Join-Path $scratch ('backup-'+[char]0x00e9)
+ Set-BackupRoot $unicode
+ Assert ((Get-BackupRoot) -ceq $unicode) 'Unicode backup location did not round-trip through UTF-8 settings'
+ Set-BackupRoot ($documents+'\')
+ Set-BackupRoot $documents.ToUpperInvariant()
+ Assert (@(Get-BackupSearchRoots | Where-Object {$_ -eq $documents}).Count -eq 1) 'Equivalent backup locations were searched twice'
+ $settingsPath=Get-BackupSettingsPath
+ $settings=Get-Content -LiteralPath $settingsPath -Raw -Encoding UTF8 | ConvertFrom-Json
+ $settings.previousBackupDirectories=@($unicode,$null,'relative-invalid-history',$custom)
+ [IO.File]::WriteAllText($settingsPath,($settings | ConvertTo-Json -Depth 3),(New-Object Text.UTF8Encoding $false))
+ Assert ((Get-BackupRoot) -eq $documents -and (Get-BackupSearchRoots) -contains $unicode) 'Invalid history hid the selected or valid earlier backup location'
+ Set-BackupRoot $documents
+ Assert ((Get-BackupSearchRoots) -contains $unicode) 'Saving location settings lost valid earlier history'
+ $blockedLocation=Join-Path $scratch 'not-a-directory'
+ [IO.File]::WriteAllText($blockedLocation,'preserve this file')
+ Throws {Assert-BackupLocationWritable $blockedLocation} 'A file was accepted as a writable backup folder'
+ Throws {Set-BackupRoot $blockedLocation} 'An unusable backup location was saved'
+ Assert ((Get-BackupRoot) -eq $documents) 'Rejected location changed the saved backup preference'
+ Assert ([IO.File]::ReadAllText($blockedLocation) -eq 'preserve this file') 'Location preflight modified an existing file'
+ Assert-BackupLocationWritable $documents
+ Assert (@(Get-ChildItem -LiteralPath $documents -Force -Filter '.write-check-*').Count -eq 0) 'Location preflight left a probe behind'
  function New-PreparationFixture([string]$Directory,[string]$Original,[string]$Patched,[string]$OriginalHash,[string]$ExecutableHash,[bool]$CorruptOriginal=$false){
   New-Item -ItemType Directory -Path $Directory -Force | Out-Null
   [IO.File]::WriteAllText((Join-Path $Directory 'original.asar'),$(if($CorruptOriginal){'corrupt-original'}else{$Original}))

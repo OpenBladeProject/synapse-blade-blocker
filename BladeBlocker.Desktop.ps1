@@ -92,7 +92,7 @@ function Invoke-DesktopTask([ValidateSet('Refresh','Patch','Restore')][string]$A
   try{
    if($Action -eq 'Patch'){
     if(!$state.CanPatch){throw 'PreconditionsChanged'}
-    if($state.CanPrepare){
+    if($state.CanPrepare -and !($state.State -eq 'Original' -and (Test-PreparedPatch $state.PreparationDirectory))){
      # Prepare emits builder progress as well as its final object; retain only that object.
      $prepared=@(& (Join-Path $PSScriptRoot 'Prepare.ps1') -InstallDirectory $state.Installation) | Where-Object {$_ -isnot [string] -and $_.Prepared -eq $true} | Select-Object -Last 1
      if(!$prepared){throw 'PreparationFailed'}
@@ -114,7 +114,7 @@ function Invoke-DesktopTask([ValidateSet('Refresh','Patch','Restore')][string]$A
    $cancelled=$false;$errorException=$_.Exception
    while($errorException){if($errorException -is [ComponentModel.Win32Exception] -and $errorException.NativeErrorCode -eq 1223){$cancelled=$true};$errorException=$errorException.InnerException}
    $outcome=if($cancelled){'ElevationCancelled'}else{'OperationFailed'}
-   $notice=if($cancelled){'Administrator approval was cancelled. The elevated operation did not start. Any completed preparation was preserved.'}else{'The operation stopped. Preconditions may have changed or preparation may be incompatible. Refresh, check the requirements below, and keep all backups. Use Open saved reports for structural compatibility details, or Copy diagnostic details to report this status at github.com/OSSBlade/synapse-blade-blocker/issues.'}
+   $notice=if($cancelled){'Administrator approval was cancelled. The elevated operation did not start. Any completed preparation was preserved.'}elseif($_.Exception.Message -like 'Backup location is unavailable*'){'The backup location is unavailable or not writable. Use Choose backup location to select another folder, then try again.'}else{'The operation stopped. Preconditions may have changed or preparation may be incompatible. Refresh, check the requirements below, and keep all backups. Use Open saved reports for structural compatibility details, or Copy diagnostic details to report this status at github.com/OSSBlade/synapse-blade-blocker/issues.'}
    $state=Get-DesktopState $state.PreparationDirectory $state.Installation
   }
  }
