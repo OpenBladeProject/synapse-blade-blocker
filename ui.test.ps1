@@ -58,3 +58,10 @@ $window.UpdateLayout()
 if($window.Content.ScrollableHeight -gt 0 -and $window.Content.VerticalOffset -le 0){throw 'Expanded diagnostics could not scroll'}
 [pscustomobject]@{HeaderToggleVerified=$true;ExpandedScrollingVerified=$true;KeyboardFocusVisible=$true;FocusLayoutUnchanged=$true;EnabledPrimaryGreen=$true;DisabledTextVerified=$true;RecoveryChooserExposed=$true;NoOperationHandlersAttached=$true} | ConvertTo-Json
 $window.Close()
+# Exercise the real startup path to verify the badge follows package.json.
+$hostExecutable=[Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+$smokeOutput=& $hostExecutable -NoProfile -STA -ExecutionPolicy Bypass -File (Join-Path $root 'BladeBlocker.UI.ps1') -SmokeTest
+if($LASTEXITCODE -ne 0){throw 'Production window startup failed'}
+$smoke=$smokeOutput | ConvertFrom-Json
+$expectedVersion='v'+([IO.File]::ReadAllText((Join-Path $root 'package.json')) | ConvertFrom-Json).version
+if($smoke.VersionBadge -ne $expectedVersion -or !$smoke.IsLoaded -or $smoke.ReadOnlyInspectionCompleted){throw 'Version badge failed offline production startup verification'}

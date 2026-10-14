@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.3.1] - 2026-10-14
+
+### Fixed
+
+- Show the blocker version in the window badge and link the README to the latest release without a fixed blocker version. ([#20](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/20))
+
 ## [0.3.0] - 2026-10-14
 
 ### Fixed
@@ -42,3 +48,5 @@
 [0.2.1]: https://github.com/OSSBlade/synapse-blade-blocker/compare/v0.1.0...v0.2.1
 
 [0.3.0]: https://github.com/OpenBladeProject/synapse-blade-blocker/compare/v0.2.1...v0.3.0
+
+[0.3.1]: https://github.com/OpenBladeProject/synapse-blade-blocker/compare/v0.3.0...v0.3.1

@@ -1,6 +1,6 @@
 {
   "name": "synapse-blade-blocker",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "description": "Experimental Blade exclusion for Razer Synapse",
   "scripts": {
