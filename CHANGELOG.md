@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Keep restore backups in a permanent Windows user folder, find them across blocker packages, and add an Open backups folder button. Older preparation folders remain supported. ([#17](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/17))
+- Keep restore backups in Documents by default, let users choose another location, and find earlier backups across blocker packages. Add direct access to the backup folder, prepare patches with the current code, and preserve older originals for Restore. ([#17](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/17))
 
 ### Changed
 

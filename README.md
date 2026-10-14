@@ -14,7 +14,7 @@ You need:
 - Windows PowerShell 5.1 or PowerShell 7.
 - Node.js 22 or newer.
 
-Original backups are saved in `%LOCALAPPDATA%\SynapseBladeBlocker\Backups`. Use **Open backups folder** in the blocker to find them. Backups stay in your Windows user folder when you move or replace the blocker package.
+Original backups are saved in **Documents > Synapse Blade Blocker > Backups** by default. Use **Open backups folder** to find them, or **Choose backup location** to save future backups elsewhere. The blocker remembers your choice and continues to find backups in earlier locations when you move or replace the package.
 
 ## Patch Synapse
 

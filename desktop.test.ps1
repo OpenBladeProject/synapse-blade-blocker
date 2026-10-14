@@ -47,6 +47,7 @@ function Get-Service {param($Name,$ErrorAction)}
 try{
  $env:ProgramFiles=Join-Path $scratch 'ProgramFiles'
  $env:LOCALAPPDATA=Join-Path $scratch 'LocalAppData'
+ Set-BackupRoot (Join-Path $scratch 'Documents\Synapse Blade Blocker\Backups')
  $install=Join-Path $env:ProgramFiles 'Razer\RazerAppEngine\app-99.1.0'
  $prep=Join-Path $scratch 'preparation'
  New-Item -ItemType Directory -Path (Join-Path $install 'resources'),$prep -Force | Out-Null

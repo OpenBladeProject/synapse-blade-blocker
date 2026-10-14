@@ -37,7 +37,10 @@ if($administrator -and !$SmokeTest){
    <Button x:Name="PatchButton" Content="_Patch" IsEnabled="False" MinWidth="110" ToolTip="Prepare a verified backup, then request administrator approval to apply the patch."/>
    <Button x:Name="RestoreButton" Content="_Restore" IsEnabled="False" MinWidth="110" ToolTip="Restore the verified original archive from its matching preparation."/>
    <Button x:Name="RefreshButton" Content="Re_fresh" IsEnabled="False"/>
-   <Button x:Name="OpenBackupsButton" Content="Open _backups folder" IsEnabled="False" ToolTip="Open the permanent backup folder for your Windows user account."/>
+  </WrapPanel>
+  <WrapPanel>
+   <Button x:Name="OpenBackupsButton" Content="Open _backups folder" IsEnabled="False" ToolTip="Open the folder used for new backups."/>
+   <Button x:Name="ChangeBackupsButton" Content="Choose backup _location..." IsEnabled="False" ToolTip="Choose and remember where to save new backups."/>
   </WrapPanel>
   <TextBlock x:Name="BackupLocationText" Text="Checking backup location..." Foreground="#46566A" FontSize="12" Margin="0,4,0,0"/>
   <Expander Header="Backups and diagnostics" IsExpanded="False" Margin="0,12,0,16" FontSize="14">
@@ -48,7 +51,8 @@ if($administrator -and !$SmokeTest){
      <Button x:Name="ChooseButton" Content="_Choose preparation..." IsEnabled="False"/>
      <Button x:Name="AutomaticButton" Content="_Automatic" IsEnabled="False"/>
     </WrapPanel>
-    <TextBlock Text="New backups are saved in your Windows user folder and found automatically by other copies of the blocker. For a patch made with an older version, choose its preparation folder. Keep all original backups." Foreground="#46566A" Margin="0,2,0,16"/>
+    <TextBlock Text="New backups are saved in Documents by default. You can choose another location; older locations remain searchable. For a patch made with an older version, choose its preparation folder. Keep all original backups." Foreground="#46566A" Margin="0,2,0,12"/>
+    <Button x:Name="DefaultBackupsButton" Content="Use _Documents default" IsEnabled="False" HorizontalAlignment="Left" Margin="0,0,0,16"/>
     <WrapPanel><Button x:Name="CopyButton" Content="_Copy diagnostic details" IsEnabled="False"/><Button x:Name="ReportsButton" Content="Open saved _reports" IsEnabled="False"/></WrapPanel>
     <TextBlock Text="Copied details include file hashes and status, without local paths or source code." FontSize="12" Foreground="#46566A"/>
    </StackPanel>
@@ -61,12 +65,12 @@ if($administrator -and !$SmokeTest){
 $reader=New-Object System.Xml.XmlNodeReader $markup
 $window=[Windows.Markup.XamlReader]::Load($reader)
 $controls=@{}
-foreach($name in @('StateText','InstallText','RuntimeText','BusyBar','NoticeText','DetailsText','PatchButton','RestoreButton','RefreshButton','OpenBackupsButton','BackupLocationText','PreparationText','ChooseButton','AutomaticButton','CopyButton','ReportsButton')){$controls[$name]=$window.FindName($name)}
+foreach($name in @('StateText','InstallText','RuntimeText','BusyBar','NoticeText','DetailsText','PatchButton','RestoreButton','RefreshButton','OpenBackupsButton','ChangeBackupsButton','DefaultBackupsButton','BackupLocationText','PreparationText','ChooseButton','AutomaticButton','CopyButton','ReportsButton')){$controls[$name]=$window.FindName($name)}
 $script:desktopJob=$null;$script:desktopResult=$null;$script:selectedPreparation='';$script:lastOutcome='Inspection'
 
 function Set-DesktopBusy([bool]$Busy) {
  $controls.BusyBar.Visibility=if($Busy){'Visible'}else{'Collapsed'}
- foreach($name in @('RefreshButton','ChooseButton','AutomaticButton','ReportsButton')){$controls[$name].IsEnabled=!$Busy}
+ foreach($name in @('RefreshButton','ChooseButton','AutomaticButton','ReportsButton','ChangeBackupsButton','DefaultBackupsButton')){$controls[$name].IsEnabled=!$Busy}
  $controls.CopyButton.IsEnabled=!$Busy -and $null -ne $script:desktopResult
  $controls.PatchButton.IsEnabled=!$Busy -and $null -ne $script:desktopResult -and $script:desktopResult.CanPatch
  $controls.RestoreButton.IsEnabled=!$Busy -and $null -ne $script:desktopResult -and $script:desktopResult.CanRestore
@@ -80,7 +84,7 @@ function Show-DesktopState($Result) {
  $controls.DetailsText.Text=$Result.State.Message
  $controls.NoticeText.Text=$Result.Notice
  $controls.PreparationText.Text=if($Result.State.PreparationDirectory){$Result.State.PreparationDirectory}else{"Automatic: search saved backups and this package's older preparations."}
- $controls.BackupLocationText.Text=if($Result.State.BackupRoot){'New backups: '+$Result.State.BackupRoot}else{'The Windows user backup folder is unavailable. Choose an existing preparation to restore.'}
+ $controls.BackupLocationText.Text=if($Result.State.BackupRoot){'Backup location: '+$Result.State.BackupRoot}else{'The saved backup location is unavailable. Choose another backup location.'}
  Set-DesktopBusy $false
 }
 function Start-DesktopTask([string]$Action) {
@@ -116,6 +120,20 @@ $controls.OpenBackupsButton.Add_Click({
   [void][IO.Directory]::CreateDirectory($directory)
   Start-Process -FilePath (Join-Path $env:SystemRoot 'explorer.exe') -ArgumentList (ConvertTo-DesktopArgument $directory) | Out-Null
  }catch{$controls.NoticeText.Text='Could not open the backups folder. Check the location shown below the buttons.'}
+})
+function Use-BackupLocation([string]$Directory) {
+ try{Set-BackupRoot $Directory;$script:selectedPreparation='';Start-DesktopTask 'Refresh'}
+ catch{$controls.NoticeText.Text='Could not save that backup location. Choose a writable folder. Existing backups were preserved.'}
+}
+$controls.ChangeBackupsButton.Add_Click({
+ $dialog=New-Object System.Windows.Forms.FolderBrowserDialog
+ $dialog.Description='Choose where to save new Synapse backups. Existing backups stay in their current folders.'
+ $dialog.ShowNewFolderButton=$true
+ if($script:desktopResult -and $script:desktopResult.BackupRoot -and (Test-Path -LiteralPath $script:desktopResult.BackupRoot -PathType Container)){$dialog.SelectedPath=$script:desktopResult.BackupRoot}
+ try{if($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK){Use-BackupLocation $dialog.SelectedPath}}finally{$dialog.Dispose()}
+})
+$controls.DefaultBackupsButton.Add_Click({
+ try{Use-BackupLocation (Get-DefaultBackupRoot)}catch{$controls.NoticeText.Text='The Windows Documents folder is unavailable. Choose another backup location.'}
 })
 $controls.PatchButton.Add_Click({
  if([Windows.MessageBox]::Show($window,'Patch the detected AppEngine installation? A new preparation is created when needed. Keep all preparations for Restore. Exit Synapse and shut down OpenBlade before continuing. Windows will ask for administrator approval.','Apply experimental patch','OKCancel','Warning') -eq 'OK'){Start-DesktopTask 'Patch'}

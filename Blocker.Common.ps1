@@ -62,15 +62,65 @@ function Read-Preparation([string]$Directory){
  foreach($pidValue in $m.bladeProductIds){if($pidValue -isnot [int] -and $pidValue -isnot [long]){throw 'Blade IDs must be numeric.'};if($pidValue -lt 1 -or $pidValue -gt 65535){throw 'Invalid Blade ID.'}}
  return $m
 }
-function Get-BackupRoot {
+function Get-BackupSettingsPath {
  if([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA) -or $env:LOCALAPPDATA -notmatch '^(?:[A-Za-z]:[\\/]|\\\\)'){throw 'The current user Local AppData folder is unavailable.'}
- return Join-Path $env:LOCALAPPDATA 'SynapseBladeBlocker\Backups'
+ return Join-Path $env:LOCALAPPDATA 'SynapseBladeBlocker\settings.json'
+}
+function Resolve-BackupDirectory($Directory) {
+ if($Directory -isnot [string] -or $Directory -notmatch '^(?:[A-Za-z]:[\\/]|\\\\)'){throw 'Choose an absolute backup folder path.'}
+ return [IO.Path]::GetFullPath($Directory)
+}
+function Get-DefaultBackupRoot {
+ $documents=[Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)
+ return Join-Path (Resolve-BackupDirectory $documents) 'Synapse Blade Blocker\Backups'
+}
+function Read-BackupSettings {
+ $path=Get-BackupSettingsPath
+ if(!(Test-Path -LiteralPath $path)){return $null}
+ if((Get-Item -LiteralPath $path).Length -gt 65536){throw 'Backup location settings are too large.'}
+ $settings=Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+ if($settings.schemaVersion -ne 1){throw 'Unsupported backup location settings.'}
+ $settings.backupDirectory=Resolve-BackupDirectory $settings.backupDirectory
+ foreach($directory in @($settings.previousBackupDirectories)){[void](Resolve-BackupDirectory $directory)}
+ return $settings
+}
+function Get-BackupRoot {
+ $settings=Read-BackupSettings
+ if($settings){return $settings.backupDirectory}
+ return Get-DefaultBackupRoot
+}
+function Set-BackupRoot([string]$Directory) {
+ $directory=Resolve-BackupDirectory $Directory
+ $path=Get-BackupSettingsPath
+ try{$previous=Read-BackupSettings}catch{$previous=$null}
+ $older=@()
+ if($previous){$older=@($previous.backupDirectory)+@($previous.previousBackupDirectories)}
+ $older=@($older | Where-Object {$_ -ne $directory} | Select-Object -Unique)
+ [void][IO.Directory]::CreateDirectory($directory)
+ [void][IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($path))
+ $settings=[ordered]@{schemaVersion=1;backupDirectory=$directory;previousBackupDirectories=$older}
+ $stage=$path+'.stage-'+[guid]::NewGuid().ToString('N')
+ [IO.File]::WriteAllText($stage,($settings | ConvertTo-Json -Depth 3),(New-Object Text.UTF8Encoding $false))
+ if(Test-Path -LiteralPath $path){[IO.File]::Replace($stage,$path,$path+'.backup-'+[guid]::NewGuid().ToString('N'))}else{[IO.File]::Move($stage,$path)}
+ if((Get-BackupRoot) -ne $directory){throw 'Backup location settings could not be verified.'}
+}
+function Get-BackupSearchRoots {
+ $roots=@()
+ try{$roots+=Get-BackupRoot;$settings=Read-BackupSettings;if($settings){$roots+=@($settings.previousBackupDirectories)}}catch{}
+ try{$roots+=Get-DefaultBackupRoot}catch{}
+ if($env:LOCALAPPDATA -match '^(?:[A-Za-z]:[\\/]|\\\\)'){$roots+=Join-Path $env:LOCALAPPDATA 'SynapseBladeBlocker\Backups'}
+ $roots+=Join-Path $PSScriptRoot 'prepared'
+ return @($roots | Select-Object -Unique)
+}
+function Test-PreparedPatch([string]$Directory) {
+ try{
+  $process=Invoke-BlockerNode -Arguments @((Join-Path $PSScriptRoot 'preparation-identity.cjs'),'--verify-preparation',$Directory) -DiscardStandardError
+  return $process.ExitCode -eq 0 -and ($process.Output -join '').Trim() -ceq 'true'
+ }catch{return $false}
 }
 function Find-Preparation([string]$Directory,[string]$ArchiveHash,[string]$ExecutableHash){
  if($Directory){return Resolve-FileSystemPath $Directory}
- $roots=@()
- try{$roots+=Get-BackupRoot}catch{}
- $roots+=Join-Path $PSScriptRoot 'prepared'
+ $roots=Get-BackupSearchRoots
  $matching=$null
  foreach($root in $roots){
   if(Test-Path -LiteralPath $root -PathType Container){

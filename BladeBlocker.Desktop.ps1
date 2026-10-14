@@ -10,9 +10,9 @@ function ConvertTo-DesktopArgument([string]$Value) {
 
 function Get-DesktopActions([string]$State,[bool]$MarkerPresent,[bool]$BackupValid,[bool]$PatchValid,[bool]$NodeReady,[bool]$ControllersStopped,[bool]$ExplicitPreparation,[string]$ContentState='Unreadable') {
  $known=$State -in @('Original','Experimental blocker applied')
- $canPrepare=$State -eq 'No matching preparation' -and !$MarkerPresent -and !$ExplicitPreparation -and $ContentState -eq 'NoPatchDetected'
+ $canPrepare=$ContentState -eq 'NoPatchDetected' -and (($State -eq 'Original' -and $BackupValid) -or ($State -eq 'No matching preparation' -and !$MarkerPresent -and !$ExplicitPreparation))
  [pscustomobject]@{
-  CanPatch=($ContentState -eq 'NoPatchDetected' -and $NodeReady -and $ControllersStopped -and (($State -eq 'Original' -and $BackupValid -and $PatchValid) -or $canPrepare))
+  CanPatch=($canPrepare -and $NodeReady -and $ControllersStopped)
   CanRestore=($known -and $State -eq 'Experimental blocker applied' -and $BackupValid -and $ControllersStopped)
   CanPrepare=$canPrepare
  }
@@ -69,10 +69,10 @@ function Get-DesktopState([string]$PreparationDirectory,[string]$InstallDirector
   elseif($result.State -eq 'Original'){$notes.Add('The saved original matches this archive.')}
   elseif($result.CanPrepare){$notes.Add('Patch will first prepare and validate this archive locally. Preparation preserves the installed files and creates a new backup folder.')}
   if($result.State -in @('Original','Experimental blocker applied') -and !$result.BackupValid){$notes.Add('The original backup is missing or has changed. Select an intact matching preparation before continuing.')}
-  if($result.State -eq 'Original' -and !$result.PatchValid){$notes.Add('The prepared patch is missing or has changed. Preserve this folder and select a valid preparation.')}
+  if($result.State -eq 'Original' -and !$result.PatchValid){$notes.Add('The earlier prepared patch is missing or has changed. Patch will create a fresh preparation with the current code; keep the original backup.')}
   if(!$result.ControllersStopped){$notes.Add('Patch and Restore remain disabled while Synapse or OpenBlade is running. Refresh after closing them.')}
   if(!$result.NodeReady){$notes.Add('Patch requires Node.js 22 or newer on PATH. Install it from nodejs.org and reopen this window. A verified Restore does not require Node.js.')}
-  if(!$result.BackupRoot){$notes.Add('The Windows user backup folder is unavailable. New backups cannot be prepared; an existing verified preparation can still be selected.')}
+  if(!$result.BackupRoot){$notes.Add('The saved backup location is unavailable. Use Choose backup location to save new backups elsewhere, or select an existing verified preparation to restore.')}
   $result.Message=$notes -join "`n`n"
  }catch{$result.Message='Could not inspect a standard AppEngine installation. Install Razer Synapse, close duplicate AppEngine instances, then Refresh. Installed files were not changed.'}
  [pscustomobject]$result
@@ -109,7 +109,7 @@ function Invoke-DesktopTask([ValidateSet('Refresh','Patch','Restore')][string]$A
    $verified=if($Action -eq 'Patch'){$state.State -eq 'Experimental blocker applied' -and $state.AppliedMetadataMatches -and $state.BackupValid}else{$state.State -eq 'Original' -and !$state.MarkerPresent -and $state.BackupValid}
    if($exitCode -ne 0 -or !$verified){$outcome='VerificationRequired';$notice='The operation did not complete with verified success. Do not restart Synapse yet. Inspect the status below and keep all preparations and backups.'
     $notice+=' Preserve every app.asar.blade-blocker-backup-* file in '+(Join-Path $InstallDirectory 'resources')+' and the selected preparation folder. These local recovery locations are omitted from copied diagnostics.'}
-   else{$outcome='Verified'+$Action;$notice=if($Action -eq 'Patch'){'Patch verified on disk. Restart Synapse manually, then check its status in OpenBlade. Keep this package and its prepared folder for Restore.'}else{'Original archive restored and verified; applied metadata removed. You can restart Synapse manually. All backups were preserved.'}}
+   else{$outcome='Verified'+$Action;$notice=if($Action -eq 'Patch'){'Patch verified on disk. Restart Synapse manually, then check its status in OpenBlade. Your original is saved at '+$state.PreparationDirectory+'. Use Open backups folder to find it.'}else{'Original archive restored and verified; applied metadata removed. You can restart Synapse manually. All backups were preserved.'}}
   }catch{
    $cancelled=$false;$errorException=$_.Exception
    while($errorException){if($errorException -is [ComponentModel.Win32Exception] -and $errorException.NativeErrorCode -eq 1223){$cancelled=$true};$errorException=$errorException.InnerException}

@@ -1,6 +1,7 @@
 'use strict';
-const fs=require('node:fs'),path=require('node:path');
-const bases=[...(process.env.LOCALAPPDATA?[path.join(process.env.LOCALAPPDATA,'SynapseBladeBlocker','Backups')]:[]),path.join(__dirname,'prepared')];
-const root=process.env.BLOCKER_PREPARATION_DIRECTORY || bases.flatMap(base=>fs.existsSync(base)?fs.readdirSync(base).sort().reverse().map(n=>path.join(base,n)):[]).find(n=>fs.existsSync(path.join(n,'preparation.json')));
-if(!root)throw Error('Run Prepare.ps1 first or set BLOCKER_PREPARATION_DIRECTORY to a successful preparation.');
+const path=require('node:path'),{verifyPreparation}=require('./preparation-identity.cjs');
+const selected=process.env.BLOCKER_PREPARATION_DIRECTORY;
+if(!selected)throw Error('Set BLOCKER_PREPARATION_DIRECTORY to a preparation created by this package before running local module tests.');
+const root=path.resolve(selected);
+if(!verifyPreparation(root))throw Error('BLOCKER_PREPARATION_DIRECTORY is stale or failed integrity verification. Run Prepare.ps1 with this package and select the new preparation.');
 module.exports=root;

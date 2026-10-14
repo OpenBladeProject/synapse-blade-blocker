@@ -15,8 +15,16 @@ try{
  $env:LOCALAPPDATA='relative-local-appdata'
  Throws { Get-BackupRoot } 'Relative LOCALAPPDATA accepted for backup root'
  $env:LOCALAPPDATA=Join-Path $scratch 'LocalAppData'
+ $documents=Join-Path $scratch 'Documents\Synapse Blade Blocker\Backups'
+ Set-BackupRoot $documents
  $backupRoot=Get-BackupRoot
- Assert ($backupRoot -eq (Join-Path $env:LOCALAPPDATA 'SynapseBladeBlocker\Backups')) 'Stable backup root changed'
+ Assert ($backupRoot -eq $documents) 'Chosen backup root was not remembered'
+ Assert ((Get-DefaultBackupRoot) -eq (Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)) 'Synapse Blade Blocker\Backups')) 'Default backup root did not follow Windows Documents'
+ $custom=Join-Path $scratch 'custom-backups'
+ Set-BackupRoot $custom
+ Assert ((Get-BackupRoot) -eq $custom -and (Get-BackupSearchRoots) -contains $documents) 'Changing location lost the previous backup root'
+ Set-BackupRoot $documents
+ Assert ((Get-BackupSearchRoots) -contains $custom) 'Returning to Documents lost the custom backup root'
  function New-PreparationFixture([string]$Directory,[string]$Original,[string]$Patched,[string]$OriginalHash,[string]$ExecutableHash,[bool]$CorruptOriginal=$false){
   New-Item -ItemType Directory -Path $Directory -Force | Out-Null
   [IO.File]::WriteAllText((Join-Path $Directory 'original.asar'),$(if($CorruptOriginal){'corrupt-original'}else{$Original}))
