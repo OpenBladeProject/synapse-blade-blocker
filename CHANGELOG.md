@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.3.0] - 2026-10-14
+
 ### Fixed
 
 - Save restore backups in Documents by default and let users choose another location. Find earlier backups across blocker packages, simplify the window with compact controls and clearer status messages, and verify prepared patches against the current code while keeping older originals for Restore. ([#17](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/17))
@@ -36,3 +38,5 @@
 [0.1.0]: https://github.com/OSSBlade/synapse-blade-blocker/releases/tag/v0.1.0
 
 [0.2.1]: https://github.com/OSSBlade/synapse-blade-blocker/compare/v0.1.0...v0.2.1
+
+[0.3.0]: https://github.com/OpenBladeProject/synapse-blade-blocker/compare/v0.2.1...v0.3.0

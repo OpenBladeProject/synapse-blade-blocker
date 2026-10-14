@@ -89,3 +89,13 @@ Suggestions to bypass stale markers, remove fresh integrity checks, stop an in-f
 A hostless Windows PowerShell 5.1 reproduction confirmed that native stderr could terminate otherwise successful Node calls before exit-code handling, including calls with stderr redirected. The shared Node boundary now scopes Continue to native execution, captures the exit code, and restores the caller preference. Dedicated native-process regressions exercise the asynchronous PowerShell runspace and failure diagnostics; normal CLI exit checks and archive hash verification remain required. Run them with `npm run test:native-process`.
 
 The final 0.2.1 candidate passed the dedicated native-process suite in Windows PowerShell 5.1 and PowerShell 7, all 21 source tests, all 88 prepared-module tests, both operation/desktop suites, syntax and line-ending checks, and the revised window's read-only asynchronous inspection at minimum width.
+
+## 0.3.0 release verification
+
+On 2026-10-14, [PR #17](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/17) merged the Documents backup default, remembered location choice, cross-package recovery, prepared-patch integrity checks and compact window. Its final product revision `c0269af0e933441aa26b2e52dc6808930df4d6f5` passed hosted source, scratch operation, desktop and native-process checks in Windows PowerShell 5.1 and PowerShell 7. The merge source is `9f243b574b4c3b503113b4b9bf00a38275a01cd5`.
+
+Fresh preparations from the preserved AppEngine 4.0.823 original and the installed 4.0.827 original passed all 88 local-module checks. The installed preparation was read-only. Earlier originals remain usable for Restore; stale or altered prepared patches are rejected before Apply. Regression checks cover Unicode locations, retained search history, location writability, preparation reuse and missing backup roots.
+
+The final window passed read-only asynchronous inspection and rendered checks at 600 and 560 logical pixels. An inert WPF window verified keyboard focus without layout movement, enabled and disabled styles, unique access keys, a visible recovery chooser, respect for manual collapse and cleared readiness after refresh failure.
+
+Claude Opus completed three read-only reviews of the backup and window changes. Confirmed findings were reproduced and corrected. The last review covered revision `36c7cd8`; subsequent corrections were independently tested. Claude inspected the isolated target files but could not read the exact diff. No new attended Apply/Restore or peripheral trial was performed for 0.3.0; the historical physical evidence above retains its original scope.

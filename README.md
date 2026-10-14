@@ -6,7 +6,7 @@ The patch is experimental and reversible. It recognizes 40 reviewed Blade produc
 
 ## Download
 
-Download [Synapse Blade Blocker 0.2.1](https://github.com/OSSBlade/synapse-blade-blocker/releases/tag/v0.2.1) and extract the ZIP.
+Download [Synapse Blade Blocker 0.3.0](https://github.com/OpenBladeProject/synapse-blade-blocker/releases/tag/v0.3.0) and extract the ZIP.
 
 You need:
 
