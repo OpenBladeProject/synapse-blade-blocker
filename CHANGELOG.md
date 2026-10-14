@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Keep restore backups in Documents by default, let users choose another location, and find earlier backups across blocker packages. Add direct access to the backup folder, prepare patches with the current code, and preserve older originals for Restore. ([#17](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/17))
+- Save restore backups in Documents by default and let users choose another location. Find earlier backups across blocker packages, add compact backup controls, and verify prepared patches against the current code while keeping older originals for Restore. ([#17](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/17))
 
 ### Changed
 

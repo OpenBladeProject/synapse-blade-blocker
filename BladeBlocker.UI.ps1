@@ -12,30 +12,30 @@ if($administrator -and !$SmokeTest){
 [xml]$markup=@'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Synapse Blade Blocker" Width="680" Height="640" MinWidth="560" MinHeight="520" WindowStartupLocation="CenterScreen" FontFamily="Segoe UI" FontSize="14" Background="#F5F6F8" Foreground="#17212D">
  <Window.Resources>
-  <Style TargetType="Button"><Setter Property="Padding" Value="16,10"/><Setter Property="MinHeight" Value="44"/><Setter Property="Margin" Value="0,0,10,8"/></Style>
+  <Style TargetType="Button"><Setter Property="Padding" Value="12,5"/><Setter Property="MinHeight" Value="32"/><Setter Property="Margin" Value="0,0,8,6"/></Style>
   <Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap"/></Style>
   <Style x:Key="NoticeStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}"><Style.Triggers><Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger></Style.Triggers></Style>
  </Window.Resources>
  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
  <StackPanel Margin="28">
   <TextBlock Text="Synapse Blade Blocker" FontSize="28" FontWeight="SemiBold"/>
-  <TextBlock Text="Experimental Blade exclusion for Razer Synapse" Margin="0,4,0,20" Foreground="#46566A"/>
+  <TextBlock Text="Experimental patch to hide your Blade in Synapse" Margin="0,4,0,20" Foreground="#46566A"/>
   <Border Background="White" BorderBrush="#D6DCE3" BorderThickness="1" CornerRadius="8" Padding="20">
    <StackPanel>
     <TextBlock Text="INSTALLATION STATUS" FontSize="12" FontWeight="SemiBold" Foreground="#46566A"/>
     <TextBlock x:Name="StateText" Text="Checking installation..." FontSize="22" FontWeight="SemiBold" Margin="0,6,0,10" AutomationProperties.LiveSetting="Polite"/>
-    <TextBlock x:Name="InstallText" Text="Detecting the standard AppEngine installation." Foreground="#46566A"/>
+    <TextBlock x:Name="InstallText" Text="Finding your Synapse installation..." Foreground="#46566A"/>
     <TextBlock x:Name="RuntimeText" Margin="0,6,0,0" Foreground="#46566A"/>
    </StackPanel>
   </Border>
   <ProgressBar x:Name="BusyBar" Height="4" IsIndeterminate="True" Margin="0,12,0,12" AutomationProperties.Name="Operation in progress"/>
   <TextBlock x:Name="NoticeText" Style="{StaticResource NoticeStyle}" FontWeight="SemiBold" Margin="0,12,0,12" AutomationProperties.LiveSetting="Assertive"/>
-  <TextBlock x:Name="DetailsText" Margin="0,16,0,18" Text="Inspection is read-only. Patch and Restore are available only after their requirements are checked."/>
+  <TextBlock x:Name="DetailsText" Margin="0,16,0,18" Text="This check only reads files. Patch and Restore become available when their requirements are met."/>
   <TextBlock Text="Before Patch or Restore" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6"/>
-  <TextBlock Text="Exit Synapse and use OpenBlade Settings &gt; Shut down OpenBlade. Windows will ask for administrator approval. This tool does not stop or restart either application." Margin="0,0,0,16"/>
+  <TextBlock Text="Exit Synapse and use OpenBlade Settings &gt; Shut down OpenBlade first. Windows asks for administrator approval when you patch or restore. You close and restart the apps yourself." Margin="0,0,0,16"/>
   <WrapPanel>
-   <Button x:Name="PatchButton" Content="_Patch" IsEnabled="False" MinWidth="110" ToolTip="Prepare a verified backup, then request administrator approval to apply the patch."/>
-   <Button x:Name="RestoreButton" Content="_Restore" IsEnabled="False" MinWidth="110" ToolTip="Restore the verified original archive from its matching preparation."/>
+   <Button x:Name="PatchButton" Content="_Patch" IsEnabled="False" MinWidth="80" ToolTip="Check or save the original backup, then apply the patch with administrator approval."/>
+   <Button x:Name="RestoreButton" Content="_Restore" IsEnabled="False" MinWidth="80" ToolTip="Restore the matching original backup."/>
    <Button x:Name="RefreshButton" Content="Re_fresh" IsEnabled="False"/>
   </WrapPanel>
   <WrapPanel>
@@ -45,13 +45,13 @@ if($administrator -and !$SmokeTest){
   <TextBlock x:Name="BackupLocationText" Text="Checking backup location..." Foreground="#46566A" FontSize="12" Margin="0,4,0,0"/>
   <Expander Header="Backups and diagnostics" IsExpanded="False" Margin="0,12,0,16" FontSize="14">
    <StackPanel Margin="0,12,0,0">
-    <TextBlock Text="Original backup and preparation" FontWeight="SemiBold"/>
-    <TextBlock x:Name="PreparationText" Text="Automatic: search saved backups and this package's older preparations." Margin="0,6,0,12" Foreground="#46566A"/>
+    <TextBlock Text="Backup used for Restore" FontWeight="SemiBold"/>
+    <TextBlock x:Name="PreparationText" Text="Automatic: find a matching saved backup." Margin="0,6,0,12" Foreground="#46566A"/>
     <WrapPanel>
      <Button x:Name="ChooseButton" Content="_Choose preparation..." IsEnabled="False"/>
      <Button x:Name="AutomaticButton" Content="_Automatic" IsEnabled="False"/>
     </WrapPanel>
-    <TextBlock Text="New backups are saved in Documents by default. You can choose another location; older locations remain searchable. For a patch made with an older version, choose its preparation folder. Keep all original backups." Foreground="#46566A" Margin="0,2,0,12"/>
+    <TextBlock Text="Backups go in Documents unless you choose another location. The blocker also checks your earlier locations. For an older patch, choose its preparation folder. Keep the original backups." Foreground="#46566A" Margin="0,2,0,12"/>
     <Button x:Name="DefaultBackupsButton" Content="Use _Documents default" IsEnabled="False" HorizontalAlignment="Left" Margin="0,0,0,16"/>
     <WrapPanel><Button x:Name="CopyButton" Content="_Copy diagnostic details" IsEnabled="False"/><Button x:Name="ReportsButton" Content="Open saved _reports" IsEnabled="False"/></WrapPanel>
     <TextBlock Text="Copied details include file hashes and status, without local paths or source code." FontSize="12" Foreground="#46566A"/>
@@ -80,10 +80,10 @@ function Show-DesktopState($Result) {
  $script:desktopResult=$Result.State;$script:lastOutcome=$Result.Outcome
  $controls.StateText.Text=$Result.State.DisplayState
  $controls.InstallText.Text=if($Result.State.Installation){$Result.State.Installation}else{'No readable standard AppEngine installation detected.'}
- $controls.RuntimeText.Text='Node.js: '+$Result.State.NodeVersion+'  |  Controllers: '+$(if($Result.State.ControllersStopped){'stopped'}else{'running or unavailable'})
+ $controls.RuntimeText.Text='Node.js: '+$Result.State.NodeVersion+'  |  Synapse/OpenBlade: '+$(if($Result.State.ControllersStopped){'stopped'}else{'running or unknown'})
  $controls.DetailsText.Text=$Result.State.Message
  $controls.NoticeText.Text=$Result.Notice
- $controls.PreparationText.Text=if($Result.State.PreparationDirectory){$Result.State.PreparationDirectory}else{"Automatic: search saved backups and this package's older preparations."}
+ $controls.PreparationText.Text=if($Result.State.PreparationDirectory){$Result.State.PreparationDirectory}else{'Automatic: find a matching saved backup.'}
  $controls.BackupLocationText.Text=if($Result.State.BackupRoot){'Backup location: '+$Result.State.BackupRoot}else{'The saved backup location is unavailable. Choose another backup location.'}
  Set-DesktopBusy $false
 }

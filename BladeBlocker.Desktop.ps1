@@ -56,21 +56,21 @@ function Get-DesktopState([string]$PreparationDirectory,[string]$InstallDirector
   if($actions.CanPrepare -and !$result.BackupRoot){$actions.CanPrepare=$false;$actions.CanPatch=$false}
   foreach($key in @('CanPatch','CanRestore','CanPrepare')){$result[$key]=$actions.$key}
   $notes=New-Object 'System.Collections.Generic.List[string]'
-  if($result.ContentState -in @('CurrentPatch','LegacyPatch')){$notes.Add('Blocker modules and hooks were detected inside the archive, independently of local patch records.');if($result.State -ne 'Experimental blocker applied'){$notes.Add('To restore, choose a preparation with a verified matching original. Detection alone cannot reconstruct the original or authorize replacement.')}}
+  if($result.ContentState -in @('CurrentPatch','LegacyPatch')){$notes.Add('The Synapse files contain the blocker patch.');if($result.State -ne 'Experimental blocker applied'){$notes.Add('Restore needs a matching original backup. Detecting the patch is not enough to restore it.')}}
   elseif($result.ContentState -eq 'PartialPatch'){$notes.Add('Some blocker edits are present, but the complete known patch could not be confirmed. Patch is disabled. Keep existing backups and inspect the saved diagnostic details.')}
   elseif($result.ContentState -eq 'Unreadable'){
    $notes.Add('Archive contents could not be inspected. A backup hash match does not prove an unmodified vendor archive.')
    if($result.NodeReady){$notes.Add('Node.js is available, but the archive may be unreadable or its layout unsupported. Refresh after any Synapse update finishes. If inspection still fails, copy diagnostic details for a compatibility issue; keep all backups.')}
    else{$notes.Add('Install Node.js 22 or newer and reopen this window, then Refresh.')}
   }
-  if($result.State -eq 'No matching preparation' -and $result.MarkerPresent){$notes.Add('The matching original backup was not found. For a patch made with an older blocker, expand Backups and diagnostics and choose the earlier preparation folder. Keep all backups; Restore needs a verified original that matches this installation.')}
+  if($result.State -eq 'No matching preparation' -and $result.MarkerPresent){$notes.Add('The original backup was not found. Open Backups and diagnostics and choose the earlier preparation folder. Keep all backups.')}
   elseif($result.State -eq 'Unknown archive' -or ($result.State -eq 'No matching preparation' -and $PreparationDirectory)){$notes.Add('This preparation does not match the installed files. Synapse may have updated. Choose a matching preparation or use Automatic to inspect the current installation; keep all older backups.')}
   elseif($result.State -eq 'Experimental blocker applied'){$notes.Add('The archive matches a local patched preparation. Restart Synapse manually after closing this tool, then check OpenBlade.');if(!$result.AppliedMetadataMatches){$notes.Add('Applied metadata is missing or does not match. Restore the verified original before patching again.')}}
   elseif($result.State -eq 'Original'){$notes.Add('The saved original matches this archive.')}
-  elseif($result.CanPrepare){$notes.Add('Patch will first prepare and validate this archive locally. Preparation preserves the installed files and creates a new backup folder.')}
+  elseif($result.CanPrepare){$notes.Add('Patch will save the original files and check the patch before changing Synapse.')}
   if($result.State -in @('Original','Experimental blocker applied') -and !$result.BackupValid){$notes.Add('The original backup is missing or has changed. Select an intact matching preparation before continuing.')}
   if($result.State -eq 'Original' -and !$result.PatchValid){$notes.Add('The earlier prepared patch is missing or has changed. Patch will create a fresh preparation with the current code; keep the original backup.')}
-  if(!$result.ControllersStopped){$notes.Add('Patch and Restore remain disabled while Synapse or OpenBlade is running. Refresh after closing them.')}
+  if(!$result.ControllersStopped){$notes.Add('Patch and Restore are disabled while Synapse or OpenBlade is running. Exit Synapse, shut down OpenBlade, then Refresh.')}
   if(!$result.NodeReady){$notes.Add('Patch requires Node.js 22 or newer on PATH. Install it from nodejs.org and reopen this window. A verified Restore does not require Node.js.')}
   if(!$result.BackupRoot){$notes.Add('The saved backup location is unavailable. Use Choose backup location to save new backups elsewhere, or select an existing verified preparation to restore.')}
   $result.Message=$notes -join "`n`n"

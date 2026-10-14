@@ -14,13 +14,13 @@ You need:
 - Windows PowerShell 5.1 or PowerShell 7.
 - Node.js 22 or newer.
 
-Original backups are saved in **Documents > Synapse Blade Blocker > Backups** by default. Use **Open backups folder** to find them, or **Choose backup location** to save future backups elsewhere. The blocker remembers your choice and continues to find backups in earlier locations when you move or replace the package.
+Backups go in **Documents > Synapse Blade Blocker > Backups** by default. Use **Open backups folder** to find them or **Choose backup location** to save new backups elsewhere. The blocker remembers your choice and checks earlier locations too, even after you move or replace the package.
 
 ## Patch Synapse
 
 1. Exit Synapse and keep its updater closed. If OpenBlade is running, choose **Settings > Shut down OpenBlade**.
 2. Double-click **Start-BladeBlocker.cmd** in the extracted folder. The window checks your installation and explains any missing requirements.
-3. Choose **Patch**. The tool saves the original files and checks whether it can patch your installed Synapse build. Accept the Windows administrator prompt when it appears.
+3. Choose **Patch**. The blocker checks the files and saves the original when needed. Accept the Windows administrator prompt when it appears.
 4. Wait for the tool to confirm success, then start Synapse normally. Check that your peripheral works and the Blade is absent from the device list before starting OpenBlade.
 
 Use the [latest OpenBlade release](https://github.com/OSSBlade/openblade-core/releases/latest) for the current coexistence fixes. It checks the applied patch and Synapse restart before allowing them to run together.
@@ -31,7 +31,7 @@ After a Synapse update, reopen the blocker, refresh its status, and prepare the 
 
 Exit Synapse, keep its updater closed, and shut down OpenBlade. Open the blocker and choose **Restore**. It finds the matching saved backup automatically. Accept the administrator prompt and wait for confirmation before starting Synapse again.
 
-For a patch made with an older blocker, expand **Backups and diagnostics** and use **Choose preparation…** to select the earlier folder containing `preparation.json` and `original.asar`. Keep that folder; older versions saved backups beside the extracted package.
+For a patch made with an older blocker, open **Backups and diagnostics > Choose preparation…** and select the earlier folder containing `preparation.json` and `original.asar`. Older versions saved backups beside the extracted package, so keep that folder.
 
 ## If something goes wrong
 
