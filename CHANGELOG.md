@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Keep restore backups in a permanent Windows user folder, find them across blocker packages, and add an Open backups folder button. Older preparation folders remain supported. ([#17](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/17))
+
 ### Changed
 
 - Update OpenBlade coexistence guidance for 0.24.3 and clarify the dated validation record. ([#15](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/15))
