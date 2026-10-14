@@ -36,7 +36,7 @@ function Get-DesktopState([string]$PreparationDirectory,[string]$InstallDirector
    'CurrentPatch'{'Blocker patch detected'}
    'LegacyPatch'{'Earlier blocker patch detected'}
    'PartialPatch'{'Blocker traces detected'}
-   'NoPatchDetected'{'No blocker edits detected'}
+   'NoPatchDetected'{'No blocker patch detected'}
    default {if($result.State -eq 'Experimental blocker applied'){'Patched backup matches'}elseif($result.State -eq 'Original'){'Original backup matches'}else{'Inspection unavailable'}}
   }
   $result.MarkerPresent=Test-Path -LiteralPath (Join-Path $install 'resources\synapse-blade-blocker.json')
@@ -79,17 +79,16 @@ function Get-DesktopState([string]$PreparationDirectory,[string]$InstallDirector
 }
 
 function Get-DesktopPresentation($State) {
- $presentation=[ordered]@{Title=$State.DisplayState;Summary='Refresh to check the Synapse files and backups.';Hint='Windows asks for administrator approval. You close and restart the apps yourself.';Color='#64748B';ExpandRecovery=$false}
- if($State.ContentState -eq 'NoPatchDetected'){$presentation.Title='No blocker patch detected'}
- if($State.State -eq 'Unavailable'){$presentation.Summary='Could not check this Synapse installation. See the details below.';$presentation.Color='#A15C00'}
+ $presentation=[ordered]@{Title=$State.DisplayState;Summary='Refresh to check the Synapse files and backups.';Hint='Open Backups and diagnostics for details.';Color='#64748B';ExpandRecovery=$false}
+ $restoreHasOriginal=$State.State -eq 'Experimental blocker applied' -and $State.BackupValid
+ if($State.State -eq 'Unavailable'){
+  $presentation.Summary='Could not check this Synapse installation.'
+  $presentation.Hint='Refresh, then open Backups and diagnostics for installation details.'
+  $presentation.Color='#A15C00'
+ }
  elseif(!$State.BackupValid -and ($State.MarkerPresent -or $State.ContentState -in @('CurrentPatch','LegacyPatch','PartialPatch'))){
   $presentation.Summary='Restore needs the matching original backup.'
   $presentation.Hint='Choose the earlier preparation folder under Backups and diagnostics.'
-  $presentation.Color='#A15C00';$presentation.ExpandRecovery=$true
- }
- elseif($State.State -eq 'Unknown archive' -and !$State.PreparationDirectory){
-  $presentation.Summary='The archive does not match a verified original or patch.'
-  $presentation.Hint='Keep your backups and check Backups and diagnostics before making changes.'
   $presentation.Color='#A15C00';$presentation.ExpandRecovery=$true
  }
  elseif($State.State -eq 'Unknown archive' -or ($State.State -eq 'No matching preparation' -and $State.PreparationDirectory)){
@@ -97,21 +96,28 @@ function Get-DesktopPresentation($State) {
   $presentation.Hint='Choose a matching preparation or use Automatic under Backups and diagnostics.'
   $presentation.Color='#A15C00';$presentation.ExpandRecovery=$true
  }
- elseif(!$State.BackupRoot -and !$State.CanRestore){$presentation.Summary='Choose a backup location to save new originals.';$presentation.Color='#A15C00'}
- elseif(!$State.NodeReady -and $State.ContentState -eq 'NoPatchDetected' -and !$State.CanRestore){$presentation.Summary='Install Node.js 22 or newer before patching.';$presentation.Color='#A15C00'}
+ elseif(!$State.BackupRoot -and !$restoreHasOriginal){
+  $presentation.Summary='Choose a backup location to save new originals.'
+  $presentation.Hint='Use Choose location in the Backups row to select a writable folder.'
+  $presentation.Color='#A15C00'
+ }
+ elseif(!$State.NodeReady -and !$restoreHasOriginal){
+  $presentation.Summary='Node.js 22 or newer is needed to check and prepare the patch.'
+  $presentation.Hint='Install Node.js, reopen this window, then Refresh.'
+  $presentation.Color='#A15C00'
+ }
  elseif(!$State.ControllersStopped){
   $presentation.Summary='Patch and Restore require Synapse and OpenBlade to be stopped.'
   $presentation.Hint='Exit Synapse and use OpenBlade Settings > Shut down OpenBlade, then Refresh.'
  }
- elseif($State.CanRestore){$presentation.Summary='Your verified original backup is ready to restore.';$presentation.Color='#0067C0'}
+ elseif($State.CanRestore){$presentation.Summary='Your verified original backup is ready to restore.';$presentation.Color='#0067C0';$presentation.Hint='Windows asks for administrator approval. You close and restart the apps yourself.'}
  elseif($State.CanPatch){
   $presentation.Summary=if($State.BackupValid){'Ready to patch. Your original backup is verified.'}else{'Ready to patch. The original files will be saved first.'}
-  $presentation.Color='#18814A'
+  $presentation.Color='#18814A';$presentation.Hint='Windows asks for administrator approval. You close and restart the apps yourself.'
  }
- else{$presentation.Summary='Keep your backups and check the details below before making changes.';$presentation.Color='#A15C00'}
+ else{$presentation.Summary='Keep your backups. Open Backups and diagnostics before making changes.';$presentation.Color='#A15C00'}
  return [pscustomobject]$presentation
 }
-
 function ConvertTo-DesktopDiagnostic($State,[string]$Outcome='Inspection') {
  # Explicit allowlist: never copy installation/preparation paths or raw exceptions.
  $report=[ordered]@{Tool='Synapse Blade Blocker';ToolVersion=$State.ToolVersion;Outcome=$Outcome;State=$State.State;ContentState=$State.ContentState;NodeVersion=$State.NodeVersion;NodeReady=[bool]$State.NodeReady;ControllersStopped=[bool]$State.ControllersStopped;MarkerPresent=[bool]$State.MarkerPresent;AppliedMetadataMatches=[bool]$State.AppliedMetadataMatches;OriginalBackupVerified=[bool]$State.BackupValid;PatchedArchiveVerified=[bool]$State.PatchValid;ArchiveSha256=$State.ArchiveSha256;ExecutableSha256=$State.ExecutableSha256;IsolationValidated=$false}
@@ -143,7 +149,7 @@ function Invoke-DesktopTask([ValidateSet('Refresh','Patch','Restore')][string]$A
    $verified=if($Action -eq 'Patch'){$state.State -eq 'Experimental blocker applied' -and $state.AppliedMetadataMatches -and $state.BackupValid}else{$state.State -eq 'Original' -and !$state.MarkerPresent -and $state.BackupValid}
    if($exitCode -ne 0 -or !$verified){$outcome='VerificationRequired';$notice='The operation did not complete with verified success. Do not restart Synapse yet. Inspect the status below and keep all preparations and backups.'
     $notice+=' Preserve every app.asar.blade-blocker-backup-* file in '+(Join-Path $InstallDirectory 'resources')+' and the selected preparation folder. These local recovery locations are omitted from copied diagnostics.'}
-   else{$outcome='Verified'+$Action;$notice=if($Action -eq 'Patch'){'Patch verified on disk. Restart Synapse manually, then check its status in OpenBlade. Your original is saved at '+$state.PreparationDirectory+'. Use Open folder in the Backups row to find it.'}else{'Original archive restored and verified; applied metadata removed. You can restart Synapse manually. All backups were preserved.'}}
+   else{$outcome='Verified'+$Action;$notice=if($Action -eq 'Patch'){'Patch verified on disk. Restart Synapse manually, then check its status in OpenBlade. Your original is saved at '+$state.PreparationDirectory+'.'}else{'Original archive restored and verified; applied metadata removed. You can restart Synapse manually. All backups were preserved.'}}
   }catch{
    $cancelled=$false;$errorException=$_.Exception
    while($errorException){if($errorException -is [ComponentModel.Win32Exception] -and $errorException.NativeErrorCode -eq 1223){$cancelled=$true};$errorException=$errorException.InnerException}

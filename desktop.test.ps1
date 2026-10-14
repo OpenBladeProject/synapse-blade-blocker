@@ -201,7 +201,7 @@ Assert ($report -notmatch 'private-user|original.s backup|private exception|Inst
 Assert (($report | ConvertFrom-Json).ArchiveSha256 -eq ('a'*64)) 'Diagnostic omitted archive evidence'
 
 # The compact summary must describe the same admission state as the action buttons.
-$presentationState=[pscustomobject]@{State='Original';DisplayState='No blocker edits detected';ContentState='NoPatchDetected';BackupValid=$true;MarkerPresent=$false;BackupRoot='C:\backups';PreparationDirectory='';NodeReady=$true;ControllersStopped=$false;CanPatch=$false;CanRestore=$false}
+$presentationState=[pscustomobject]@{State='Original';DisplayState='No blocker patch detected';ContentState='NoPatchDetected';BackupValid=$true;MarkerPresent=$false;BackupRoot='C:\backups';PreparationDirectory='';NodeReady=$true;ControllersStopped=$false;CanPatch=$false;CanRestore=$false}
 $p=Get-DesktopPresentation $presentationState
 Assert ($p.Summary -match 'require.*stopped' -and $p.Summary -notmatch 'Ready') 'Summary claimed readiness with controllers not confirmed stopped'
 $presentationState.State='No matching preparation';$presentationState.ContentState='CurrentPatch';$presentationState.MarkerPresent=$true;$presentationState.BackupValid=$false
@@ -211,14 +211,18 @@ $presentationState.State='Unknown archive';$presentationState.ContentState='NoPa
 $p=Get-DesktopPresentation $presentationState
 Assert ($p.ExpandRecovery -and $p.Hint -match 'Automatic') 'Mismatched selected backup omitted the recovery choice'
 $presentationState.PreparationDirectory=''
-$p=Get-DesktopPresentation $presentationState
-Assert ($p.ExpandRecovery -and $p.Summary -match 'archive does not match' -and $p.Summary -notmatch 'selected') 'Unknown archive summary invented a selected backup'
 $presentationState.State='Experimental blocker applied';$presentationState.ContentState='Unreadable';$presentationState.BackupValid=$true;$presentationState.CanRestore=$true;$presentationState.ControllersStopped=$true;$presentationState.NodeReady=$false;$presentationState.BackupRoot=$null
 $p=Get-DesktopPresentation $presentationState
 Assert ($p.Summary -match 'ready to restore' -and $p.Summary -notmatch 'Install Node') 'Summary blocked a verified restore on optional preparation requirements'
 $presentationState.State='No matching preparation';$presentationState.ContentState='NoPatchDetected';$presentationState.CanRestore=$false;$presentationState.CanPatch=$true;$presentationState.BackupValid=$false;$presentationState.NodeReady=$true;$presentationState.BackupRoot='C:\backups'
 $p=Get-DesktopPresentation $presentationState
 Assert ($p.Summary -match 'saved first') 'First patch summary omitted original-backup preparation'
+$presentationState.ContentState='Unreadable';$presentationState.NodeReady=$false;$presentationState.CanPatch=$false
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.Summary -match 'Node.js 22' -and $p.Hint -match 'Install Node') 'Missing Node was hidden behind unreadable archive details'
+$presentationState.State='Experimental blocker applied';$presentationState.BackupValid=$true;$presentationState.BackupRoot=$null;$presentationState.ControllersStopped=$false
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.Summary -match 'require.*stopped' -and $p.Hint -notmatch 'Install Node') 'Restore with running controllers was blocked by optional Node or backup-root requirements'
 $presentationState.State='Unavailable';$presentationState.CanPatch=$false
 $p=Get-DesktopPresentation $presentationState
 Assert ($p.Summary -notmatch 'Ready') 'Unavailable inspection claimed readiness'

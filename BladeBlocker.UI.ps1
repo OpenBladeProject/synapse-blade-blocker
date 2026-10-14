@@ -64,11 +64,11 @@ if($administrator -and !$SmokeTest){
    <Button x:Name="PatchButton" Content="_Patch" Style="{StaticResource PrimaryButtonStyle}" IsEnabled="False" MinWidth="80" ToolTip="Check or save the original backup, then apply the patch with administrator approval."/>
    <Button x:Name="RestoreButton" Content="_Restore" IsEnabled="False" MinWidth="80" ToolTip="Restore the matching original backup."/>
   </WrapPanel>
-  <TextBlock x:Name="ActionHintText" Text="Windows asks for administrator approval. You close and restart the apps yourself." Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,8,0,0" LineHeight="17"/>
+  <TextBlock x:Name="ActionHintText" Text="" Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,8,0,0" LineHeight="17"/>
   <Border BorderBrush="#DFE3EA" BorderThickness="0,1,0,1" Padding="0,13" Margin="0,16,0,0">
    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
     <StackPanel Margin="0,0,12,0"><TextBlock Text="Backups" FontWeight="SemiBold"/><TextBlock x:Name="BackupLocationText" Text="Checking location..." Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,3,0,0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/></StackPanel>
-    <Button Grid.Column="1" x:Name="OpenBackupsButton" Content="Open _folder" IsEnabled="False" VerticalAlignment="Center" ToolTip="Open the folder used for new backups."/>
+    <Button Grid.Column="1" x:Name="OpenBackupsButton" Content="_Open folder" IsEnabled="False" VerticalAlignment="Center" ToolTip="Open the folder used for new backups."/>
     <Button Grid.Column="2" x:Name="ChangeBackupsButton" Content="Choose _location..." IsEnabled="False" Margin="0" VerticalAlignment="Center" ToolTip="Choose and remember where to save new backups."/>
    </Grid>
   </Border>
@@ -85,7 +85,7 @@ if($administrator -and !$SmokeTest){
     <TextBlock Text="Installation" FontWeight="SemiBold"/><TextBlock x:Name="InstallationPathText" Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,4,0,0"/>
     <TextBlock x:Name="RuntimeText" Margin="0,4,0,12" FontSize="12" Foreground="{StaticResource MutedBrush}"/>
     <TextBlock x:Name="DetailsText" Margin="0,0,0,12" LineHeight="19"/>
-    <WrapPanel><Button x:Name="CopyButton" Content="_Copy diagnostic details" IsEnabled="False"/><Button x:Name="ReportsButton" Content="Open saved _reports" IsEnabled="False"/></WrapPanel>
+    <WrapPanel><Button x:Name="CopyButton" Content="Copy d_iagnostic details" IsEnabled="False"/><Button x:Name="ReportsButton" Content="Open saved r_eports" IsEnabled="False"/></WrapPanel>
     <TextBlock Text="Copied details include file hashes and status, without local paths or source code." FontSize="12" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,0"/>
    </StackPanel>
   </Expander>
@@ -98,7 +98,7 @@ $reader=New-Object System.Xml.XmlNodeReader $markup
 $window=[Windows.Markup.XamlReader]::Load($reader)
 $controls=@{}
 foreach($name in @('StateText','StatusDot','SummaryText','ActionHintText','InstallText','InstallationPathText','RuntimeText','BusyBar','NoticeText','DetailsText','PatchButton','RestoreButton','RefreshButton','OpenBackupsButton','ChangeBackupsButton','DefaultBackupsButton','BackupLocationText','PreparationText','RecoveryExpander','ChooseButton','AutomaticButton','CopyButton','ReportsButton')){$controls[$name]=$window.FindName($name)}
-$script:desktopJob=$null;$script:desktopResult=$null;$script:selectedPreparation='';$script:lastOutcome='Inspection'
+$script:desktopJob=$null;$script:desktopResult=$null;$script:selectedPreparation='';$script:lastOutcome='Inspection';$script:recoverySuggested=$false
 
 function Set-DesktopBusy([bool]$Busy) {
  $controls.BusyBar.Visibility=if($Busy){'Visible'}else{'Collapsed'}
@@ -115,7 +115,21 @@ function Show-DesktopState($Result) {
  $controls.SummaryText.Text=$presentation.Summary
  $controls.ActionHintText.Text=$presentation.Hint
  $controls.StatusDot.Fill=(New-Object Windows.Media.BrushConverter).ConvertFromString($presentation.Color)
- if($presentation.ExpandRecovery){$controls.RecoveryExpander.IsExpanded=$true;if($window.Height -lt 640){$window.Height=640}}
+  if($presentation.ExpandRecovery -and !$script:recoverySuggested){
+  $controls.RecoveryExpander.IsExpanded=$true
+  $handle=(New-Object Windows.Interop.WindowInteropHelper $window).Handle
+  $area=[System.Windows.Forms.Screen]::FromHandle($handle).WorkingArea
+  $source=[Windows.PresentationSource]::FromVisual($window)
+  if($source -and $source.CompositionTarget){
+   $transform=$source.CompositionTarget.TransformFromDevice
+   $topLeft=$transform.Transform((New-Object Windows.Point $area.Left,$area.Top))
+   $bottomRight=$transform.Transform((New-Object Windows.Point $area.Right,$area.Bottom))
+   $available=$bottomRight.Y-$topLeft.Y
+   if($window.Height -lt 640){$window.Height=[Math]::Min(640,$available)}
+   $window.Top=[Math]::Max($topLeft.Y,[Math]::Min($window.Top,$bottomRight.Y-$window.Height))
+  }
+ }
+ $script:recoverySuggested=$presentation.ExpandRecovery
  $controls.InstallText.Text=if($Result.State.Installation){'AppEngine '+((Split-Path -Leaf $Result.State.Installation) -replace '^app-','')}else{'Installation unavailable'}
  $controls.InstallText.ToolTip=$Result.State.Installation
  $controls.InstallationPathText.Text=$Result.State.Installation
@@ -129,6 +143,17 @@ function Show-DesktopState($Result) {
  $controls.BackupLocationText.ToolTip=$Result.State.BackupRoot
  $controls.PatchButton.Style=$window.FindResource($(if($Result.State.CanRestore){[Windows.Controls.Button]}else{'PrimaryButtonStyle'}))
  $controls.RestoreButton.Style=$window.FindResource($(if($Result.State.CanRestore){'PrimaryButtonStyle'}else{[Windows.Controls.Button]}))
+ Set-DesktopBusy $false
+}
+function Show-DesktopInspectionFailure {
+ $script:desktopResult=$null
+ $controls.StateText.Text='Inspection failed'
+ $controls.SummaryText.Text='Could not read a complete status.'
+ $controls.ActionHintText.Text='Refresh before attempting an operation. Keep all backups.'
+ $controls.StatusDot.Fill=(New-Object Windows.Media.BrushConverter).ConvertFromString('#A15C00')
+ $controls.InstallText.Text='Installation unavailable';$controls.InstallText.ToolTip=$null
+ $controls.InstallationPathText.Text='';$controls.RuntimeText.Text='';$controls.DetailsText.Text=''
+ $controls.NoticeText.Text='Could not read a complete status. Refresh before attempting an operation. Keep all backups.'
  Set-DesktopBusy $false
 }
 function Start-DesktopTask([string]$Action) {
@@ -153,7 +178,7 @@ $timer.Add_Tick({
    $results=@($job.PowerShell.EndInvoke($job.Handle));$result=$results | Where-Object {$_ -and $_.PSObject.Properties['Outcome']} | Select-Object -Last 1
    if(!$result){throw 'NoResult'}
    Show-DesktopState $result
-  }catch{$script:desktopResult=$null;$controls.StateText.Text='Inspection failed';$controls.NoticeText.Text='Could not read a complete status. Refresh before attempting an operation. Keep all backups.';Set-DesktopBusy $false}
+  }catch{Show-DesktopInspectionFailure}
   finally{$job.PowerShell.Dispose()}
  }
 })
