@@ -38,12 +38,16 @@ foreach($arg in @('a"b',"a`nb","a`rb","a$([char]0)b")){Throws {ConvertTo-Desktop
 # Exercise real discovery against synthetic installation files, with two Node paths.
 $scratch=Join-Path ([IO.Path]::GetTempPath()) ('blocker-desktop-tests-'+[guid]::NewGuid().ToString('N'))
 $originalProgramFiles=$env:ProgramFiles
+$originalLocalAppData=$env:LOCALAPPDATA
+$hostExe=(Microsoft.PowerShell.Management\Get-Process -Id $PID -ErrorAction Stop).Path
 $nodeSource=(Microsoft.PowerShell.Core\Get-Command node -CommandType Application | Select-Object -First 1).Source
 function Get-Command {param($Name,$CommandType,$ErrorAction) if($Name -eq 'node'){@([pscustomobject]@{Source=$nodeSource},[pscustomobject]@{Source='C:\unreachable-second-node.exe'})}}
 function Get-Process {param($Name,$ErrorAction)}
 function Get-Service {param($Name,$ErrorAction)}
 try{
  $env:ProgramFiles=Join-Path $scratch 'ProgramFiles'
+ $env:LOCALAPPDATA=Join-Path $scratch 'LocalAppData'
+ Set-BackupRoot (Join-Path $scratch 'Documents\Synapse Blade Blocker\Backups')
  $install=Join-Path $env:ProgramFiles 'Razer\RazerAppEngine\app-99.1.0'
  $prep=Join-Path $scratch 'preparation'
  New-Item -ItemType Directory -Path (Join-Path $install 'resources'),$prep -Force | Out-Null
@@ -66,6 +70,24 @@ const json=Buffer.from(JSON.stringify(h)),aligned=Math.ceil(json.length/4)*4,hea
  $m | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $prep 'preparation.json')
  $s=Get-DesktopState $prep $install
  Assert ($s.NodeReady -and $s.State -eq 'Original' -and $s.CanPatch -and !$s.CanRestore -and $s.ContentState -eq 'NoPatchDetected') 'Independent archive inspection or multiple Node resolution failed'
+ $stableRoot=Get-BackupRoot
+ New-Item -ItemType Directory -Path $stableRoot -Force | Out-Null
+ $stableOlder=Join-Path $stableRoot '20261013T010000000-older';$stableNewer=Join-Path $stableRoot '20261014T010000000-newer'
+ Copy-Item -LiteralPath $prep -Destination $stableOlder -Recurse
+ Copy-Item -LiteralPath $prep -Destination $stableNewer -Recurse
+ [IO.File]::WriteAllText((Join-Path $stableNewer 'original.asar'),'corrupt newer backup')
+ $s=Get-DesktopState '' $install
+ Assert ($s.PreparationDirectory -eq $stableOlder -and $s.BackupValid -and $s.CanRestore -eq $false) 'Stable discovery did not prefer intact original backup'
+ [IO.File]::WriteAllText((Join-Path $stableOlder 'original.asar'),'corrupt older backup')
+ $s=Get-DesktopState '' $install
+ Assert ($s.PreparationDirectory -eq $stableNewer -and !$s.BackupValid -and !$s.CanRestore) 'All-corrupt matching backup did not remain inspectable without restore admission'
+ $mismatch=Join-Path $stableRoot '20261014T020000000-mismatched'
+ Copy-Item -LiteralPath $prep -Destination $mismatch -Recurse
+ $mismatchMeta=Get-Content -LiteralPath (Join-Path $mismatch 'preparation.json') -Raw | ConvertFrom-Json
+ $mismatchMeta.executableSha256='f'*64
+ $mismatchMeta | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $mismatch 'preparation.json')
+ $s=Get-DesktopState $mismatch $install
+ Assert ($s.PreparationDirectory -eq $mismatch -and !$s.CanRestore) 'Explicit mismatched preparation fell back to durable backup'
  # A newer installation appearing after Refresh must not redirect a queued action.
  $newer=Join-Path $env:ProgramFiles 'Razer\RazerAppEngine\app-99.2.0'
  New-Item -ItemType Directory -Path (Join-Path $newer 'resources') -Force | Out-Null
@@ -84,6 +106,32 @@ const json=Buffer.from(JSON.stringify(h)),aligned=Math.ceil(json.length/4)*4,hea
  Set-BlockerArchive $target $exe $prep Apply | Out-Null
  $s=Get-DesktopState $prep $install
  Assert ($s.CanRestore -and $s.AppliedMetadataMatches -and !$s.CanPatch) 'Real patched state was not verified'
+ $durablePatched=Join-Path $stableRoot '20261014T030000000-durable-patched'
+ Copy-Item -LiteralPath $prep -Destination $durablePatched -Recurse
+ $movedPackage=Join-Path $scratch 'moved-package'
+ New-Item -ItemType Directory -Path $movedPackage -Force | Out-Null
+ foreach($file in @('BladeBlocker.Desktop.ps1','Blocker.Common.ps1','BladeBlocker.ps1','inspect-archive.cjs','package.json')){Copy-Item -LiteralPath (Join-Path $PSScriptRoot $file) -Destination $movedPackage}
+ $movedProbe=Join-Path $scratch 'moved-package-probe.ps1'
+ [IO.File]::WriteAllText($movedProbe,@'
+param([string]$Package,[string]$InstallDirectory,[string]$LocalAppData,[string]$ProgramFilesRoot)
+$env:LOCALAPPDATA=$LocalAppData
+$env:ProgramFiles=$ProgramFilesRoot
+. (Join-Path $Package 'BladeBlocker.Desktop.ps1')
+function Get-Process {param($Name,$ErrorAction)}
+function Get-Service {param($Name,$ErrorAction)}
+$state=Get-DesktopState '' $InstallDirectory
+if(!$state.CanRestore){throw ('Moved package did not discover durable patched backup: '+$state.Message)}
+if(!$state.PreparationDirectory.EndsWith('20261014T030000000-durable-patched')){throw 'Moved package selected the wrong preparation.'}
+'ok'
+'@)
+ $movedResult=& $hostExe -NoProfile -ExecutionPolicy Bypass -File $movedProbe -Package $movedPackage -InstallDirectory $install -LocalAppData $env:LOCALAPPDATA -ProgramFilesRoot $env:ProgramFiles
+ Assert ($LASTEXITCODE -eq 0 -and $movedResult -contains 'ok') 'Copied common/desktop package lost durable patched-backup discovery'
+ $env:LOCALAPPDATA=$null
+ $s=Get-DesktopState '' $newer
+ Assert (!$s.CanPrepare -and !$s.CanPatch) 'Unavailable LOCALAPPDATA enabled automatic preparation or patch'
+ $s=Get-DesktopState $prep $install
+ Assert ($s.CanRestore -and $s.AppliedMetadataMatches) 'Unavailable LOCALAPPDATA blocked verified explicit restore'
+ $env:LOCALAPPDATA=Join-Path $scratch 'LocalAppData'
  Remove-Item -LiteralPath (Join-Path $prep 'blocked.asar')
  $s=Get-DesktopState $prep $install
  Assert ($s.CanRestore -and !$s.PatchValid) 'Missing prepared patch blocked Restore'
@@ -96,6 +144,7 @@ const json=Buffer.from(JSON.stringify(h)),aligned=Math.ceil(json.length/4)*4,hea
  Assert ($s.NodeReady -and $s.Message -match 'layout unsupported' -and $s.Message -notmatch 'Install Node.js') 'Unreadable archive misdiagnosed a working Node runtime'
 }finally{
  $env:ProgramFiles=$originalProgramFiles
+ $env:LOCALAPPDATA=$originalLocalAppData
  Remove-Item Function:\Get-Command,Function:\Get-Process,Function:\Get-Service
  $resolved=[IO.Path]::GetFullPath($scratch)
  $tempRoot=[IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')+'\'
@@ -150,6 +199,33 @@ Assert ($r.Outcome -eq 'Inspection' -and $script:starts -eq 0) 'Refresh attempte
 $report=ConvertTo-DesktopDiagnostic $original 'OperationFailed'
 Assert ($report -notmatch 'private-user|original.s backup|private exception|Installation|PreparationDirectory|Message') 'Diagnostic leaked private paths or exceptions'
 Assert (($report | ConvertFrom-Json).ArchiveSha256 -eq ('a'*64)) 'Diagnostic omitted archive evidence'
+
+# The compact summary must describe the same admission state as the action buttons.
+$presentationState=[pscustomobject]@{State='Original';DisplayState='No blocker patch detected';ContentState='NoPatchDetected';BackupValid=$true;MarkerPresent=$false;BackupRoot='C:\backups';PreparationDirectory='';NodeReady=$true;ControllersStopped=$false;CanPatch=$false;CanRestore=$false}
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.Summary -match 'require.*stopped' -and $p.Summary -notmatch 'Ready') 'Summary claimed readiness with controllers not confirmed stopped'
+$presentationState.State='No matching preparation';$presentationState.ContentState='CurrentPatch';$presentationState.MarkerPresent=$true;$presentationState.BackupValid=$false
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.ExpandRecovery -and $p.Summary -match 'matching original backup') 'Missing original was hidden behind less relevant controller instructions'
+$presentationState.State='Unknown archive';$presentationState.ContentState='NoPatchDetected';$presentationState.MarkerPresent=$false;$presentationState.PreparationDirectory='C:\selected-backup'
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.ExpandRecovery -and $p.Hint -match 'Automatic') 'Mismatched selected backup omitted the recovery choice'
+$presentationState.PreparationDirectory=''
+$presentationState.State='Experimental blocker applied';$presentationState.ContentState='Unreadable';$presentationState.BackupValid=$true;$presentationState.CanRestore=$true;$presentationState.ControllersStopped=$true;$presentationState.NodeReady=$false;$presentationState.BackupRoot=$null
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.Summary -match 'ready to restore' -and $p.Summary -notmatch 'Install Node') 'Summary blocked a verified restore on optional preparation requirements'
+$presentationState.State='No matching preparation';$presentationState.ContentState='NoPatchDetected';$presentationState.CanRestore=$false;$presentationState.CanPatch=$true;$presentationState.BackupValid=$false;$presentationState.NodeReady=$true;$presentationState.BackupRoot='C:\backups'
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.Summary -match 'saved first') 'First patch summary omitted original-backup preparation'
+$presentationState.ContentState='Unreadable';$presentationState.NodeReady=$false;$presentationState.CanPatch=$false
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.Summary -match 'Node.js 22' -and $p.Hint -match 'Install Node') 'Missing Node was hidden behind unreadable archive details'
+$presentationState.State='Experimental blocker applied';$presentationState.BackupValid=$true;$presentationState.BackupRoot=$null;$presentationState.ControllersStopped=$false
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.Summary -match 'require.*stopped' -and $p.Hint -notmatch 'Install Node') 'Restore with running controllers was blocked by optional Node or backup-root requirements'
+$presentationState.State='Unavailable';$presentationState.CanPatch=$false
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.Summary -notmatch 'Ready') 'Unavailable inspection claimed readiness'
 # Cross the real Windows -File argument boundary, without elevation or installed writes.
 $scratch=Join-Path ([IO.Path]::GetTempPath()) ('blocker-desktop-boundary-'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $scratch | Out-Null
@@ -183,6 +259,10 @@ try{
  $mockStateBody=${function:Get-DesktopState}
  . (Join-Path $scratch 'BladeBlocker.Desktop.ps1')
  Set-Item Function:\Get-DesktopState $mockStateBody
+ function Test-PreparedPatch([string]$Directory){return $Directory -eq "C:\private-user\original's backup"}
+ $reusable=New-State 'Original' $true $false $false;$reusable.CanPrepare=$true
+ $r=Run-Case $reusable $patched Patch
+ Assert ($r.Outcome -eq 'VerifiedPatch' -and $script:reads -eq 2 -and $script:starts -eq 1) 'A verified current preparation was copied again instead of reused'
  $unprepared=New-State 'No matching preparation' $true $false $false;$unprepared.CanPrepare=$true
  $script:snapshots=@($unprepared,$original,$patched);$script:reads=0;$script:starts=0;$script:exitCode=0;$script:cancel=$false
  $r=Invoke-DesktopTask Patch '' ''

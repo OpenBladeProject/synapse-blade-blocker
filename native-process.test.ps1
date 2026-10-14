@@ -6,7 +6,7 @@ New-Item -ItemType Directory -Path $scratch | Out-Null
 try{
  $package=Join-Path $scratch 'package'
  New-Item -ItemType Directory -Path $package | Out-Null
- foreach($file in @('Blocker.Common.ps1','Prepare.ps1','build-prototype-blades.cjs','failure-report.cjs','inspect-archive.cjs','package.json','device-exclusion-universal.cjs','native-exclusion-universal.cjs','blade-device-registry.json')){
+ foreach($file in @('Blocker.Common.ps1','Prepare.ps1','build-prototype-blades.cjs','preparation-identity.cjs','failure-report.cjs','inspect-archive.cjs','package.json','device-exclusion-universal.cjs','native-exclusion-universal.cjs','blade-device-registry.json')){
   Copy-Item -LiteralPath (Join-Path $PSScriptRoot $file) -Destination $package
  }
  $nativeFixture=Join-Path $scratch 'native-stderr.cjs'
@@ -50,18 +50,22 @@ try{
  $powershell=[PowerShell]::Create()
  try{
   $script={
-   param($Package,$ProgramFiles,$Install)
+   param($Package,$ProgramFiles,$Install,$LocalAppData,$Backups)
    $ErrorActionPreference='Stop'
    $oldProgramFiles=$env:ProgramFiles
+   $oldLocalAppData=$env:LOCALAPPDATA
    try{
     $env:ProgramFiles=$ProgramFiles
+    $env:LOCALAPPDATA=$LocalAppData
+    . (Join-Path $Package 'Blocker.Common.ps1')
+    Set-BackupRoot $Backups
     $items=@(& (Join-Path $Package 'Prepare.ps1') -InstallDirectory $Install)
     [pscustomobject]@{Caught=$false;PreparedCount=@($items | Where-Object {$_.Prepared -eq $true}).Count;After=[string]$ErrorActionPreference}
    }catch{
     [pscustomobject]@{Caught=$true;PreparedCount=0;Message=$_.Exception.Message;After=[string]$ErrorActionPreference}
-   }finally{$env:ProgramFiles=$oldProgramFiles}
+   }finally{$env:ProgramFiles=$oldProgramFiles;$env:LOCALAPPDATA=$oldLocalAppData}
   }
-  [void]$powershell.AddScript($script.ToString()).AddArgument($package).AddArgument($programFiles).AddArgument($install)
+  [void]$powershell.AddScript($script.ToString()).AddArgument($package).AddArgument($programFiles).AddArgument($install).AddArgument((Join-Path $scratch 'LocalAppData')).AddArgument((Join-Path $scratch 'Documents\Backups'))
   $handle=$powershell.BeginInvoke()
   $prepareResult=@($powershell.EndInvoke($handle)) | Select-Object -Last 1
   Assert ($prepareResult.Caught -and $prepareResult.PreparedCount -eq 0) 'Incompatible preparation reported success'
@@ -70,7 +74,7 @@ try{
  }finally{$powershell.Dispose()}
  $reports=@(Get-ChildItem -LiteralPath (Join-Path $package 'diagnostics') -Filter '*.md')
  Assert ($reports.Count -eq 1) 'A single failing builder did not produce exactly one diagnostic report'
- Assert (@(Get-ChildItem -LiteralPath (Join-Path $package 'prepared') -Filter 'preparation.json' -Recurse -ErrorAction SilentlyContinue).Count -eq 0) 'Incompatible preparation left success metadata'
+ Assert (@(Get-ChildItem -LiteralPath (Join-Path $scratch 'Documents\Backups') -Filter 'preparation.json' -Recurse -ErrorAction SilentlyContinue).Count -eq 0) 'Incompatible preparation left success metadata in the configured backup location'
 
  # A benign Node preload warning must not turn valid archive inspection into Unreadable.
  $archive=Join-Path $scratch 'valid-original.asar'

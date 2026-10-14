@@ -22,6 +22,7 @@ if(!$m -or $actualExe -ne $m.executableSha256 -or $current -notin @($m.originalA
 $wanted=if($Mode -eq 'Apply'){$m.patchedAsarSha256}else{$m.originalAsarSha256}
 $source=Join-Path $directory $(if($Mode -eq 'Apply'){'blocked.asar'}else{'original.asar'})
 if((Read-Hash $source) -ne $wanted -or (Read-Hash (Join-Path $directory 'original.asar')) -ne $m.originalAsarSha256){throw 'Source/rollback archive integrity mismatch; no files changed.'}
+if($Mode -eq 'Apply' -and !(Test-PreparedPatch $directory)){throw 'The prepared patch does not match this blocker source. Run Prepare.ps1 with this package before applying.'}
 if(!$PSCmdlet.ShouldProcess($target,"$Mode locally prepared Synapse archive and applied metadata")){return}
 if(!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'Run Apply/Restore from an administrator PowerShell window. Status does not need elevation.'}
 if(Get-Process RazerAppEngine,OpenBlade.Service,OpenBlade.Tray,OpenBlade.SessionAgent -ErrorAction SilentlyContinue){throw 'Exit Synapse and use OpenBlade Settings > Shut down OpenBlade first. This tool stops no processes.'}

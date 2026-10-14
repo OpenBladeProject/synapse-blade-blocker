@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),vm=require('node:vm');
-const root=__dirname,sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const root=__dirname,sha=b=>crypto.createHash('sha256').update(b).digest('hex'),{sourceIdentity}=require('./preparation-identity.cjs');
 function transform(archive) {
  if(archive.length<16||archive.readUInt32LE(0)!==4||16+archive.readUInt32LE(12)>archive.length)throw Error('Invalid ASAR header');
  const header=JSON.parse(archive.subarray(16,16+archive.readUInt32LE(12))),base=8+archive.readUInt32LE(4);
@@ -50,7 +50,7 @@ function prepare(source,executable,output){
  const archive=fs.readFileSync(source),exeHash=sha(fs.readFileSync(executable)),built=transform(archive);
  fs.mkdirSync(output,{recursive:true});fs.writeFileSync(path.join(output,'original.asar'),archive,{flag:'wx'});fs.writeFileSync(path.join(output,'blocked.asar'),built.result,{flag:'wx'});
  for(const [name,data] of built.changed){const dest=path.join(output,'patched-blades',name);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,data,{flag:'wx'});}
- Object.assign(built.report,{executableSha256:exeHash,preparedAtUtc:new Date().toISOString()});fs.writeFileSync(path.join(output,'preparation.json'),JSON.stringify(built.report,null,2),{flag:'wx'});return built.report;
+ Object.assign(built.report,{executableSha256:exeHash,patchSourceSha256:sourceIdentity(),preparedAtUtc:new Date().toISOString()});fs.writeFileSync(path.join(output,'preparation.json'),JSON.stringify(built.report,null,2),{flag:'wx'});return built.report;
 }
 module.exports={transform,prepare};
 if(require.main===module){try{const [source,executable,output]=process.argv.slice(2);if(!source||!executable||!output)throw Error('Usage: node build-prototype-blades.cjs ORIGINAL_ASAR EXECUTABLE NEW_OUTPUT_DIRECTORY');console.log(JSON.stringify(prepare(source,executable,output),null,2));}catch(error){require('./failure-report.cjs').report({stage:'Build',error,archive:process.argv[2],executable:process.argv[3],psVersion:process.env.BLOCKER_POWERSHELL_VERSION});process.exitCode=1;}}

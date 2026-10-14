@@ -25,16 +25,23 @@ Open PowerShell in the extracted folder. Exit Synapse and keep its updater close
 ```powershell
 npm test
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Prepare.ps1
-npm run test:local
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Mode Status
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Mode Apply -WhatIf
 ```
 
+For local module checks, set `BLOCKER_PREPARATION_DIRECTORY` to the folder returned by Prepare, then run `npm run test:local`.
+
 Discovery uses the exact active AppEngine process directory when available, or the newest `app-VERSION` directory under `%ProgramFiles%\Razer\RazerAppEngine`. Both scripts accept `-InstallDirectory` for an explicit directory within that standard layout. They reject ambiguous active installations and reparse-point installation paths.
 
-Each preparation creates a new ignored `prepared/<timestamp>-<id>/` folder with `original.asar`, `blocked.asar`, extracted patched modules, and `preparation.json`. The manifest records hashes of the actual source, executable, and output plus the embedded Blade registry IDs. Existing preparations, backups, and legacy local `original.asar` are preserved. Preparation only reads installed files.
+Each preparation creates a new `<timestamp>-<id>` folder in **Documents > Synapse Blade Blocker > Backups** by default. It uses the Windows Documents location, including redirected folders. In the window's **Backups** row, use **Open folder** to open it or **Choose location…** to save new backups elsewhere. Earlier backups stay where they are. **Use Documents default** switches back to Documents. The blocker saves the choice and previous locations atomically in `%LOCALAPPDATA%\SynapseBladeBlocker\settings.json`.
 
-Apply/Restore automatically find a local preparation whose archive and executable hashes match the selected installation. Use `-PreparationDirectory` to select one explicitly. Local module tests select the newest completed preparation; set `BLOCKER_PREPARATION_DIRECTORY` to test a particular folder.
+Each folder contains `original.asar`, `blocked.asar`, extracted patched modules, and `preparation.json`. The manifest records hashes of the actual source, executable, and output plus the embedded Blade registry IDs and the patch-source fingerprint. Existing preparations, backups, and legacy local `original.asar` are preserved. Preparation only reads installed files.
+
+Automatic lookup searches the selected folder, previously selected locations, the Documents default, the earlier `%LOCALAPPDATA%\SynapseBladeBlocker\Backups` location, and the package's legacy `prepared/` folder. It requires the installation's executable and archive hashes to match a preparation, and prefers an intact original backup over a damaged matching one. Explicit `-PreparationDirectory` selection never falls back to a different backup. Other older preparations can still be selected manually.
+
+Desktop Patch reuses a preparation only after verifying it against the current patch source; otherwise it creates a fresh preparation. Apply checks the patch-source fingerprint and the deterministic transform of the verified original before writing, so an older or altered prepared patch cannot be reused as the current patch. Older originals remain usable for Restore. Apply and Restore receive the resolved preparation path explicitly, including across the administrator prompt; their executable/archive integrity and stopped-controller checks remain required.
+
+Apply and Restore find a preparation whose archive and executable hashes match the selected installation. Use `-PreparationDirectory` to select one explicitly. Local module tests require `BLOCKER_PREPARATION_DIRECTORY` to point to a verified preparation made with the current source.
 
 Relative `-InstallDirectory` and `-PreparationDirectory` paths resolve from the current PowerShell location. Windows PowerShell 5.1 and PowerShell 7 are covered by scratch operation tests, including non-UTC local timezones and UTC marker validation. Future-dated markers are rejected. Early discovery failures retain the PowerShell version in sanitized diagnostics; a missing matching preparation is reported as missing input.
 
@@ -100,6 +107,6 @@ The IDs above are illustrative; the real marker contains all excluded numeric PI
 - The user reported Pro Click V2 `1532:00D1` discovery, ordinary input, and requested customization checks working while the Blade was absent. This is user-reported evidence.
 - Shared native/host routes remain available. Complete isolation, other peripherals, sleep/resume, and hardware behavior on future builds remain unverified.
 
-See [VALIDATION.md](VALIDATION.md) for artifact and test scope. `npm test` runs source-only policy, compatibility and diagnostic checks. `npm run test:operations` exercises discovery and reversible replacement using disposable synthetic files. `npm run test:local` runs 88 checks against prepared modules with inert native mocks. Never commit generated archives, extracted vendor code, or raw diagnostic captures.
+See [VALIDATION.md](VALIDATION.md) for artifact and test scope. `npm test` runs source-only policy, compatibility and diagnostic checks. `npm run test:operations` exercises discovery and reversible replacement using disposable synthetic files. Set `BLOCKER_PREPARATION_DIRECTORY` to the folder returned by a fresh preparation before running `npm run test:local`; it verifies that the preparation matches the current patch source, then runs the module checks with inert native mocks. Never commit generated archives, extracted vendor code, or raw diagnostic captures.
 
 Project licensing remains for the repository owner to select. Razer components are not included or licensed by this repository.

@@ -5,10 +5,80 @@ function Throws([scriptblock]$Action,[string]$Message){$failed=$false;try{& $Act
 $scratch=Join-Path ([IO.Path]::GetTempPath()) ('blocker-operations-'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $scratch | Out-Null
 $oldProgramFiles=$env:ProgramFiles
+$oldLocalAppData=$env:LOCALAPPDATA
 try{
  $env:ProgramFiles=Join-Path $scratch 'ProgramFiles'
+ $env:LOCALAPPDATA=Join-Path $scratch 'LocalAppData'
  $hostExe=(Microsoft.PowerShell.Management\Get-Process -Id $PID -ErrorAction Stop).Path
  $packageVersion=[string](Get-Content -LiteralPath (Join-Path $PSScriptRoot 'package.json') -Raw | ConvertFrom-Json).version
+ Throws { $env:LOCALAPPDATA=$null; Get-BackupRoot } 'Missing LOCALAPPDATA accepted for backup root'
+ $env:LOCALAPPDATA='relative-local-appdata'
+ Throws { Get-BackupRoot } 'Relative LOCALAPPDATA accepted for backup root'
+ $env:LOCALAPPDATA=Join-Path $scratch 'LocalAppData'
+ $documents=Join-Path $scratch 'Documents\Synapse Blade Blocker\Backups'
+ Set-BackupRoot $documents
+ $backupRoot=Get-BackupRoot
+ Assert ($backupRoot -eq $documents) 'Chosen backup root was not remembered'
+ Assert ((Get-DefaultBackupRoot) -eq (Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)) 'Synapse Blade Blocker\Backups')) 'Default backup root did not follow Windows Documents'
+ $custom=Join-Path $scratch 'custom-backups'
+ Set-BackupRoot $custom
+ Assert ((Get-BackupRoot) -eq $custom -and (Get-BackupSearchRoots) -contains $documents) 'Changing location lost the previous backup root'
+ Set-BackupRoot $documents
+ Assert ((Get-BackupSearchRoots) -contains $custom) 'Returning to Documents lost the custom backup root'
+ $unicode=Join-Path $scratch ('backup-'+[char]0x00e9)
+ Set-BackupRoot $unicode
+ Assert ((Get-BackupRoot) -ceq $unicode) 'Unicode backup location did not round-trip through UTF-8 settings'
+ Set-BackupRoot ($documents+'\')
+ Set-BackupRoot $documents.ToUpperInvariant()
+ Assert (@(Get-BackupSearchRoots | Where-Object {$_ -eq $documents}).Count -eq 1) 'Equivalent backup locations were searched twice'
+ $settingsPath=Get-BackupSettingsPath
+ $settings=Get-Content -LiteralPath $settingsPath -Raw -Encoding UTF8 | ConvertFrom-Json
+ $settings.previousBackupDirectories=@($unicode,$null,'relative-invalid-history',$custom)
+ [IO.File]::WriteAllText($settingsPath,($settings | ConvertTo-Json -Depth 3),(New-Object Text.UTF8Encoding $false))
+ Assert ((Get-BackupRoot) -eq $documents -and (Get-BackupSearchRoots) -contains $unicode) 'Invalid history hid the selected or valid earlier backup location'
+ Set-BackupRoot $documents
+ Assert ((Get-BackupSearchRoots) -contains $unicode) 'Saving location settings lost valid earlier history'
+ $blockedLocation=Join-Path $scratch 'not-a-directory'
+ [IO.File]::WriteAllText($blockedLocation,'preserve this file')
+ Throws {Assert-BackupLocationWritable $blockedLocation} 'A file was accepted as a writable backup folder'
+ Throws {Set-BackupRoot $blockedLocation} 'An unusable backup location was saved'
+ Assert ((Get-BackupRoot) -eq $documents) 'Rejected location changed the saved backup preference'
+ Assert ([IO.File]::ReadAllText($blockedLocation) -eq 'preserve this file') 'Location preflight modified an existing file'
+ Assert-BackupLocationWritable $documents
+ Assert (@(Get-ChildItem -LiteralPath $documents -Force -Filter '.write-check-*').Count -eq 0) 'Location preflight left a probe behind'
+ function New-PreparationFixture([string]$Directory,[string]$Original,[string]$Patched,[string]$OriginalHash,[string]$ExecutableHash,[bool]$CorruptOriginal=$false){
+  New-Item -ItemType Directory -Path $Directory -Force | Out-Null
+  [IO.File]::WriteAllText((Join-Path $Directory 'original.asar'),$(if($CorruptOriginal){'corrupt-original'}else{$Original}))
+  [IO.File]::WriteAllText((Join-Path $Directory 'blocked.asar'),$Patched)
+  $m=[ordered]@{schemaVersion=1;patchId='OSSBlade/synapse-blade-blocker';originalAsarSha256=$OriginalHash;patchedAsarSha256=(Read-Hash (Join-Path $Directory 'blocked.asar'));executableSha256=$ExecutableHash;bladeProductIds=@(736)}
+  $m | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Directory 'preparation.json')
+  return $Directory
+ }
+ $fixtureOriginal=Join-Path $scratch 'fixture-original.asar';[IO.File]::WriteAllText($fixtureOriginal,'stable original')
+ $fixtureExe=Join-Path $scratch 'fixture.exe';[IO.File]::WriteAllText($fixtureExe,'stable executable')
+ $fixtureOriginalHash=Read-Hash $fixtureOriginal;$fixtureExecutableHash=Read-Hash $fixtureExe
+ $stableRoot=Get-BackupRoot
+ $older=New-PreparationFixture (Join-Path $stableRoot '20261013T010000000-older') 'stable original' 'stable patched' $fixtureOriginalHash $fixtureExecutableHash
+ $newer=New-PreparationFixture (Join-Path $stableRoot '20261014T010000000-newer') 'stable original' 'stable patched' $fixtureOriginalHash $fixtureExecutableHash $true
+ $found=Find-Preparation '' $fixtureOriginalHash $fixtureExecutableHash
+ Assert ($found -eq $older) 'Corrupt newer matching original shadowed intact stable backup'
+ Remove-Item -LiteralPath (Join-Path $older 'original.asar') -Force
+ $found=Find-Preparation '' $fixtureOriginalHash $fixtureExecutableHash
+ Assert ($found -eq $newer) 'All-corrupt matching backups did not remain available for UI explanation'
+ Throws { Find-Preparation '' ('f'*64) $fixtureExecutableHash } 'Unknown archive was matched to a preparation'
+ Throws { Find-Preparation '' $fixtureOriginalHash ('e'*64) } 'Unknown executable was matched to a preparation'
+ $legacyPackage=Join-Path $scratch 'legacy-package';New-Item -ItemType Directory -Path (Join-Path $legacyPackage 'prepared') -Force | Out-Null
+ Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Blocker.Common.ps1') -Destination $legacyPackage
+ $legacyRoot=Join-Path $legacyPackage 'prepared';$legacy=New-PreparationFixture (Join-Path $legacyRoot 'legacy-fixture') 'stable original' 'stable patched' $fixtureOriginalHash $fixtureExecutableHash
+ Remove-Item -LiteralPath $stableRoot -Recurse -Force
+ $legacyProbe=Join-Path $scratch 'legacy-probe.ps1'
+ [IO.File]::WriteAllText($legacyProbe,@'
+param([string]$Package,[string]$ArchiveHash,[string]$ExecutableHash)
+. (Join-Path $Package 'Blocker.Common.ps1')
+Find-Preparation '' $ArchiveHash $ExecutableHash
+'@)
+ $found=& $hostExe -NoProfile -ExecutionPolicy Bypass -File $legacyProbe -Package $legacyPackage -ArchiveHash $fixtureOriginalHash -ExecutableHash $fixtureExecutableHash
+ Assert ($LASTEXITCODE -eq 0 -and $found -eq $legacy) 'Legacy package prepared discovery was dropped'
  $reportedVersion=& $hostExe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'BladeBlocker.ps1') -Version
  Assert ($LASTEXITCODE -eq 0 -and [string]$reportedVersion -ceq $packageVersion) 'Offline -Version did not match package.json'
  $engineRoot=Join-Path $env:ProgramFiles 'Razer\RazerAppEngine'
@@ -107,7 +177,9 @@ try{
  $global:LASTEXITCODE=0
  Write-Output ('Passed in PowerShell '+$PSVersionTable.PSVersion+' ('+[TimeZoneInfo]::Local.Id+'): offline package version, discovery, relative provider paths, future version, apply/restore, UTC marker contract, future rejection, idempotence, backup/update safety, early-report privacy and runtime version.')
 }finally{
+ if($legacy -and (Test-Path -LiteralPath $legacy)){Remove-Item -LiteralPath $legacy -Recurse -Force}
  $env:ProgramFiles=$oldProgramFiles
+ $env:LOCALAPPDATA=$oldLocalAppData
  $resolved=[IO.Path]::GetFullPath($scratch)
  if($resolved.StartsWith([IO.Path]::GetFullPath([IO.Path]::GetTempPath()),[StringComparison]::OrdinalIgnoreCase) -and [IO.Path]::GetFileName($resolved).StartsWith('blocker-operations-')){Remove-Item -LiteralPath $resolved -Recurse -Force}
 }
