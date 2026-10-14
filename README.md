@@ -14,7 +14,7 @@ You need:
 - Windows PowerShell 5.1 or PowerShell 7.
 - Node.js 22 or newer.
 
-Keep the extracted folder. It holds the original files needed to restore Synapse.
+Original backups are saved in `%LOCALAPPDATA%\SynapseBladeBlocker\Backups`. Use **Open backups folder** in the blocker to find them. Backups stay in your Windows user folder when you move or replace the blocker package.
 
 ## Patch Synapse
 
@@ -29,9 +29,9 @@ After a Synapse update, reopen the blocker, refresh its status, and prepare the 
 
 ## Restore Synapse
 
-Exit Synapse, keep its updater closed, and shut down OpenBlade. Open the blocker from the same folder and choose **Restore**. Accept the administrator prompt and wait for confirmation before starting Synapse again.
+Exit Synapse, keep its updater closed, and shut down OpenBlade. Open the blocker and choose **Restore**. It finds the matching saved backup automatically. Accept the administrator prompt and wait for confirmation before starting Synapse again.
 
-If you moved the blocker, use its preparation-folder selector to find the earlier folder containing your saved originals.
+For a patch made with an older blocker, expand **Backups and diagnostics** and use **Choose preparation…** to select the earlier folder containing `preparation.json` and `original.asar`. Keep that folder; older versions saved backups beside the extracted package.
 
 ## If something goes wrong
 

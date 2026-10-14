@@ -37,16 +37,18 @@ if($administrator -and !$SmokeTest){
    <Button x:Name="PatchButton" Content="_Patch" IsEnabled="False" MinWidth="110" ToolTip="Prepare a verified backup, then request administrator approval to apply the patch."/>
    <Button x:Name="RestoreButton" Content="_Restore" IsEnabled="False" MinWidth="110" ToolTip="Restore the verified original archive from its matching preparation."/>
    <Button x:Name="RefreshButton" Content="Re_fresh" IsEnabled="False"/>
+   <Button x:Name="OpenBackupsButton" Content="Open _backups folder" IsEnabled="False" ToolTip="Open the permanent backup folder for your Windows user account."/>
   </WrapPanel>
+  <TextBlock x:Name="BackupLocationText" Text="Checking backup location..." Foreground="#46566A" FontSize="12" Margin="0,4,0,0"/>
   <Expander Header="Backups and diagnostics" IsExpanded="False" Margin="0,12,0,16" FontSize="14">
    <StackPanel Margin="0,12,0,0">
     <TextBlock Text="Original backup and preparation" FontWeight="SemiBold"/>
-    <TextBlock x:Name="PreparationText" Text="Automatic: search this package's prepared folder." Margin="0,6,0,12" Foreground="#46566A"/>
+    <TextBlock x:Name="PreparationText" Text="Automatic: search saved backups and this package's older preparations." Margin="0,6,0,12" Foreground="#46566A"/>
     <WrapPanel>
      <Button x:Name="ChooseButton" Content="_Choose preparation..." IsEnabled="False"/>
      <Button x:Name="AutomaticButton" Content="_Automatic" IsEnabled="False"/>
     </WrapPanel>
-    <TextBlock Text="Keep the complete package and every prepared folder. After extracting a new copy, choose the previous preparation folder to recover its original backup." Foreground="#46566A" Margin="0,2,0,16"/>
+    <TextBlock Text="New backups are saved in your Windows user folder and found automatically by other copies of the blocker. For a patch made with an older version, choose its preparation folder. Keep all original backups." Foreground="#46566A" Margin="0,2,0,16"/>
     <WrapPanel><Button x:Name="CopyButton" Content="_Copy diagnostic details" IsEnabled="False"/><Button x:Name="ReportsButton" Content="Open saved _reports" IsEnabled="False"/></WrapPanel>
     <TextBlock Text="Copied details include file hashes and status, without local paths or source code." FontSize="12" Foreground="#46566A"/>
    </StackPanel>
@@ -59,7 +61,7 @@ if($administrator -and !$SmokeTest){
 $reader=New-Object System.Xml.XmlNodeReader $markup
 $window=[Windows.Markup.XamlReader]::Load($reader)
 $controls=@{}
-foreach($name in @('StateText','InstallText','RuntimeText','BusyBar','NoticeText','DetailsText','PatchButton','RestoreButton','RefreshButton','PreparationText','ChooseButton','AutomaticButton','CopyButton','ReportsButton')){$controls[$name]=$window.FindName($name)}
+foreach($name in @('StateText','InstallText','RuntimeText','BusyBar','NoticeText','DetailsText','PatchButton','RestoreButton','RefreshButton','OpenBackupsButton','BackupLocationText','PreparationText','ChooseButton','AutomaticButton','CopyButton','ReportsButton')){$controls[$name]=$window.FindName($name)}
 $script:desktopJob=$null;$script:desktopResult=$null;$script:selectedPreparation='';$script:lastOutcome='Inspection'
 
 function Set-DesktopBusy([bool]$Busy) {
@@ -68,6 +70,7 @@ function Set-DesktopBusy([bool]$Busy) {
  $controls.CopyButton.IsEnabled=!$Busy -and $null -ne $script:desktopResult
  $controls.PatchButton.IsEnabled=!$Busy -and $null -ne $script:desktopResult -and $script:desktopResult.CanPatch
  $controls.RestoreButton.IsEnabled=!$Busy -and $null -ne $script:desktopResult -and $script:desktopResult.CanRestore
+ $controls.OpenBackupsButton.IsEnabled=!$Busy -and $null -ne $script:desktopResult -and [bool]$script:desktopResult.BackupRoot
 }
 function Show-DesktopState($Result) {
  $script:desktopResult=$Result.State;$script:lastOutcome=$Result.Outcome
@@ -76,7 +79,8 @@ function Show-DesktopState($Result) {
  $controls.RuntimeText.Text='Node.js: '+$Result.State.NodeVersion+'  |  Controllers: '+$(if($Result.State.ControllersStopped){'stopped'}else{'running or unavailable'})
  $controls.DetailsText.Text=$Result.State.Message
  $controls.NoticeText.Text=$Result.Notice
- $controls.PreparationText.Text=if($Result.State.PreparationDirectory){$Result.State.PreparationDirectory}else{"Automatic: search this package's prepared folder."}
+ $controls.PreparationText.Text=if($Result.State.PreparationDirectory){$Result.State.PreparationDirectory}else{"Automatic: search saved backups and this package's older preparations."}
+ $controls.BackupLocationText.Text=if($Result.State.BackupRoot){'New backups: '+$Result.State.BackupRoot}else{'The Windows user backup folder is unavailable. Choose an existing preparation to restore.'}
  Set-DesktopBusy $false
 }
 function Start-DesktopTask([string]$Action) {
@@ -106,6 +110,13 @@ $timer.Add_Tick({
  }
 })
 $controls.RefreshButton.Add_Click({Start-DesktopTask 'Refresh'})
+$controls.OpenBackupsButton.Add_Click({
+ try{
+  $directory=Get-BackupRoot
+  [void][IO.Directory]::CreateDirectory($directory)
+  Start-Process -FilePath (Join-Path $env:SystemRoot 'explorer.exe') -ArgumentList (ConvertTo-DesktopArgument $directory) | Out-Null
+ }catch{$controls.NoticeText.Text='Could not open the backups folder. Check the location shown below the buttons.'}
+})
 $controls.PatchButton.Add_Click({
  if([Windows.MessageBox]::Show($window,'Patch the detected AppEngine installation? A new preparation is created when needed. Keep all preparations for Restore. Exit Synapse and shut down OpenBlade before continuing. Windows will ask for administrator approval.','Apply experimental patch','OKCancel','Warning') -eq 'OK'){Start-DesktopTask 'Patch'}
 })
@@ -116,6 +127,7 @@ $controls.ChooseButton.Add_Click({
  $dialog=New-Object System.Windows.Forms.FolderBrowserDialog
  $dialog.Description='Choose the preparation folder containing preparation.json and original.asar.'
  $dialog.ShowNewFolderButton=$false
+ if($script:desktopResult -and $script:desktopResult.BackupRoot -and (Test-Path -LiteralPath $script:desktopResult.BackupRoot -PathType Container)){$dialog.SelectedPath=$script:desktopResult.BackupRoot}
  try{if($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK){$script:selectedPreparation=$dialog.SelectedPath;Start-DesktopTask 'Refresh'}}finally{$dialog.Dispose()}
 })
 $controls.AutomaticButton.Add_Click({$script:selectedPreparation='';Start-DesktopTask 'Refresh'})

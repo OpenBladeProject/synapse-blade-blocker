@@ -11,7 +11,7 @@ $exe=Join-Path $install 'RazerAppEngine.exe'
 $before=Read-Hash $archive
 $exeBefore=Read-Hash $exe
 # Every attempt uses a fresh directory. Earlier preparations and original.asar are never overwritten.
-$output=Join-Path $PSScriptRoot ('prepared\'+[DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfff')+'-'+[guid]::NewGuid().ToString('N'))
+$output=Join-Path (Get-BackupRoot) ([DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfff')+'-'+[guid]::NewGuid().ToString('N'))
 $process=Invoke-BlockerNode -Arguments @((Join-Path $PSScriptRoot 'build-prototype-blades.cjs'),$archive,$exe,$output)
 $process.Output | Write-Output
 if($process.ExitCode -ne 0){$builderReported=$true;throw 'Preparation failed. Report compatibility issues at https://github.com/OSSBlade/synapse-blade-blocker/issues'}

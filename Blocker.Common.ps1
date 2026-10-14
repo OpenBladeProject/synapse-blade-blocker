@@ -62,16 +62,33 @@ function Read-Preparation([string]$Directory){
  foreach($pidValue in $m.bladeProductIds){if($pidValue -isnot [int] -and $pidValue -isnot [long]){throw 'Blade IDs must be numeric.'};if($pidValue -lt 1 -or $pidValue -gt 65535){throw 'Invalid Blade ID.'}}
  return $m
 }
+function Get-BackupRoot {
+ if([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA) -or $env:LOCALAPPDATA -notmatch '^(?:[A-Za-z]:[\\/]|\\\\)'){throw 'The current user Local AppData folder is unavailable.'}
+ return Join-Path $env:LOCALAPPDATA 'SynapseBladeBlocker\Backups'
+}
 function Find-Preparation([string]$Directory,[string]$ArchiveHash,[string]$ExecutableHash){
  if($Directory){return Resolve-FileSystemPath $Directory}
- $root=Join-Path $PSScriptRoot 'prepared'
- if(Test-Path -LiteralPath $root){
-  foreach($candidate in (Get-ChildItem -LiteralPath $root -Directory | Sort-Object Name -Descending)){
-   try{$m=Read-Preparation $candidate.FullName}catch{continue}
-   if($m.executableSha256 -eq $ExecutableHash -and $ArchiveHash -in @($m.originalAsarSha256,$m.patchedAsarSha256)){return $candidate.FullName}
+ $roots=@()
+ try{$roots+=Get-BackupRoot}catch{}
+ $roots+=Join-Path $PSScriptRoot 'prepared'
+ $matching=$null
+ foreach($root in $roots){
+  if(Test-Path -LiteralPath $root -PathType Container){
+   try{$candidates=@(Get-ChildItem -LiteralPath $root -Directory -ErrorAction Stop | Sort-Object Name -Descending)}catch{continue}
+   foreach($candidate in $candidates){
+    try{
+     $m=Read-Preparation $candidate.FullName
+     if($m.executableSha256 -eq $ExecutableHash -and $ArchiveHash -in @($m.originalAsarSha256,$m.patchedAsarSha256)){
+      if(!$matching){$matching=$candidate.FullName}
+      if((Read-Hash (Join-Path $candidate.FullName 'original.asar')) -eq $m.originalAsarSha256){return $candidate.FullName}
+     }
+    }catch{continue}
+   }
   }
  }
- throw 'No matching local preparation. Run Prepare.ps1 for this installation; preserve all older preparations.'
+ # Retain a matching but damaged candidate so the desktop can explain its missing backup.
+ if($matching){return $matching}
+ throw 'No matching local preparation. Check the backups folder or choose an older preparation; preserve all backups.'
 }
 function Read-UtcTimestamp($Value){
  # PowerShell 7 may deserialize JSON timestamps as DateTime; PowerShell 5 leaves strings.

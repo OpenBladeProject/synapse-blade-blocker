@@ -19,7 +19,8 @@ function Get-DesktopActions([string]$State,[bool]$MarkerPresent,[bool]$BackupVal
 }
 
 function Get-DesktopState([string]$PreparationDirectory,[string]$InstallDirectory) {
- $result=[ordered]@{ToolVersion=(Get-ToolVersion);State='Unavailable';DisplayState='Inspection unavailable';ContentState='Unreadable';ArchiveInspection=$null;Installation=$null;PreparationDirectory=$PreparationDirectory;MarkerPresent=$false;BackupValid=$false;PatchValid=$false;NodeReady=$false;NodeVersion='Unavailable';ControllersStopped=$false;ArchiveSha256=$null;ExecutableSha256=$null;AppliedMetadataMatches=$false;CanPatch=$false;CanRestore=$false;CanPrepare=$false;Message=''}
+ $result=[ordered]@{ToolVersion=(Get-ToolVersion);State='Unavailable';DisplayState='Inspection unavailable';ContentState='Unreadable';ArchiveInspection=$null;Installation=$null;PreparationDirectory=$PreparationDirectory;BackupRoot=$null;MarkerPresent=$false;BackupValid=$false;PatchValid=$false;NodeReady=$false;NodeVersion='Unavailable';ControllersStopped=$false;ArchiveSha256=$null;ExecutableSha256=$null;AppliedMetadataMatches=$false;CanPatch=$false;CanRestore=$false;CanPrepare=$false;Message=''}
+ try{$result.BackupRoot=Get-BackupRoot}catch{}
  try{
   $process=Invoke-BlockerNode -Arguments @('--version') -DiscardStandardError
   $v=[string]($process.Output -join '')
@@ -52,6 +53,7 @@ function Get-DesktopState([string]$PreparationDirectory,[string]$InstallDirector
   $svc=Get-Service OpenBlade -ErrorAction SilentlyContinue
   $result.ControllersStopped=$processes.Count -eq 0 -and (!$svc -or $svc.Status -eq 'Stopped')
   $actions=Get-DesktopActions $result.State $result.MarkerPresent $result.BackupValid $result.PatchValid $result.NodeReady $result.ControllersStopped ([bool]$PreparationDirectory) $result.ContentState
+  if($actions.CanPrepare -and !$result.BackupRoot){$actions.CanPrepare=$false;$actions.CanPatch=$false}
   foreach($key in @('CanPatch','CanRestore','CanPrepare')){$result[$key]=$actions.$key}
   $notes=New-Object 'System.Collections.Generic.List[string]'
   if($result.ContentState -in @('CurrentPatch','LegacyPatch')){$notes.Add('Blocker modules and hooks were detected inside the archive, independently of local patch records.');if($result.State -ne 'Experimental blocker applied'){$notes.Add('To restore, choose a preparation with a verified matching original. Detection alone cannot reconstruct the original or authorize replacement.')}}
@@ -61,7 +63,7 @@ function Get-DesktopState([string]$PreparationDirectory,[string]$InstallDirector
    if($result.NodeReady){$notes.Add('Node.js is available, but the archive may be unreadable or its layout unsupported. Refresh after any Synapse update finishes. If inspection still fails, copy diagnostic details for a compatibility issue; keep all backups.')}
    else{$notes.Add('Install Node.js 22 or newer and reopen this window, then Refresh.')}
   }
-  if($result.State -eq 'No matching preparation' -and $result.MarkerPresent){$notes.Add('Applied metadata exists, but its matching preparation is unavailable. Choose the original preparation folder. If Synapse updated or was manually restored, preserve all backups and seek recovery help; do not remove metadata to bypass this check. Patch and Restore are disabled to protect the current archive.')}
+  if($result.State -eq 'No matching preparation' -and $result.MarkerPresent){$notes.Add('The matching original backup was not found. For a patch made with an older blocker, expand Backups and diagnostics and choose the earlier preparation folder. Keep all backups; Restore needs a verified original that matches this installation.')}
   elseif($result.State -eq 'Unknown archive' -or ($result.State -eq 'No matching preparation' -and $PreparationDirectory)){$notes.Add('This preparation does not match the installed files. Synapse may have updated. Choose a matching preparation or use Automatic to inspect the current installation; keep all older backups.')}
   elseif($result.State -eq 'Experimental blocker applied'){$notes.Add('The archive matches a local patched preparation. Restart Synapse manually after closing this tool, then check OpenBlade.');if(!$result.AppliedMetadataMatches){$notes.Add('Applied metadata is missing or does not match. Restore the verified original before patching again.')}}
   elseif($result.State -eq 'Original'){$notes.Add('The saved original matches this archive.')}
@@ -70,6 +72,7 @@ function Get-DesktopState([string]$PreparationDirectory,[string]$InstallDirector
   if($result.State -eq 'Original' -and !$result.PatchValid){$notes.Add('The prepared patch is missing or has changed. Preserve this folder and select a valid preparation.')}
   if(!$result.ControllersStopped){$notes.Add('Patch and Restore remain disabled while Synapse or OpenBlade is running. Refresh after closing them.')}
   if(!$result.NodeReady){$notes.Add('Patch requires Node.js 22 or newer on PATH. Install it from nodejs.org and reopen this window. A verified Restore does not require Node.js.')}
+  if(!$result.BackupRoot){$notes.Add('The Windows user backup folder is unavailable. New backups cannot be prepared; an existing verified preparation can still be selected.')}
   $result.Message=$notes -join "`n`n"
  }catch{$result.Message='Could not inspect a standard AppEngine installation. Install Razer Synapse, close duplicate AppEngine instances, then Refresh. Installed files were not changed.'}
  [pscustomobject]$result
