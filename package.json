@@ -8,6 +8,7 @@
     "test:local": "node --test blade-wrappers.test.cjs blade-native-guard.test.cjs blade-observation.test.cjs native-startup.test.cjs electron-action-guard.test.cjs service-route-guard.test.cjs",
     "test:operations": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File operations.test.ps1",
     "test:desktop": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File desktop.test.ps1",
+    "test:ui": "powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File ui.test.ps1",
     "test:native-process": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File native-process.test.ps1"
   },
   "engines": {

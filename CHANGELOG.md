@@ -10,6 +10,8 @@
 
 ### Changed
 
+- Use OpenBlade's application icons, dark tray palette and green accent in the blocker window. ([#18](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/18))
+
 - Update OpenBlade coexistence guidance for 0.24.3 and clarify the dated validation record. ([#15](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/15))
 
 - Simplify the README around patching and restoring Synapse, with command-line and implementation details in a separate technical guide. ([#13](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/13))

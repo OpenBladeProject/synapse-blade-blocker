@@ -79,43 +79,43 @@ function Get-DesktopState([string]$PreparationDirectory,[string]$InstallDirector
 }
 
 function Get-DesktopPresentation($State) {
- $presentation=[ordered]@{Title=$State.DisplayState;Summary='Refresh to check the Synapse files and backups.';Hint='Open Backups and diagnostics for details.';Color='#64748B';ExpandRecovery=$false}
+ $presentation=[ordered]@{Title=$State.DisplayState;Summary='Refresh to check the Synapse files and backups.';Hint='Open Backups and diagnostics for details.';StatusTone='Neutral';ExpandRecovery=$false}
  $restoreHasOriginal=$State.State -eq 'Experimental blocker applied' -and $State.BackupValid
  if($State.State -eq 'Unavailable'){
   $presentation.Summary='Could not check this Synapse installation.'
   $presentation.Hint='Refresh, then open Backups and diagnostics for installation details.'
-  $presentation.Color='#A15C00'
+  $presentation.StatusTone='Caution'
  }
  elseif(!$State.BackupValid -and ($State.MarkerPresent -or $State.ContentState -in @('CurrentPatch','LegacyPatch','PartialPatch'))){
   $presentation.Summary='Restore needs the matching original backup.'
   $presentation.Hint='Choose the earlier preparation folder under Backups and diagnostics.'
-  $presentation.Color='#A15C00';$presentation.ExpandRecovery=$true
+  $presentation.StatusTone='Caution';$presentation.ExpandRecovery=$true
  }
  elseif($State.State -eq 'Unknown archive' -or ($State.State -eq 'No matching preparation' -and $State.PreparationDirectory)){
   $presentation.Summary='The selected backup does not match this installation.'
   $presentation.Hint='Choose a matching preparation or use Automatic under Backups and diagnostics.'
-  $presentation.Color='#A15C00';$presentation.ExpandRecovery=$true
+  $presentation.StatusTone='Caution';$presentation.ExpandRecovery=$true
  }
  elseif(!$State.BackupRoot -and !$restoreHasOriginal){
   $presentation.Summary='Choose a backup location to save new originals.'
   $presentation.Hint='Use Choose location in the Backups row to select a writable folder.'
-  $presentation.Color='#A15C00'
+  $presentation.StatusTone='Caution'
  }
  elseif(!$State.NodeReady -and !$restoreHasOriginal){
   $presentation.Summary='Node.js 22 or newer is needed to check and prepare the patch.'
   $presentation.Hint='Install Node.js, reopen this window, then Refresh.'
-  $presentation.Color='#A15C00'
+  $presentation.StatusTone='Caution'
  }
  elseif(!$State.ControllersStopped){
   $presentation.Summary='Patch and Restore require Synapse and OpenBlade to be stopped.'
   $presentation.Hint='Exit Synapse and use OpenBlade Settings > Shut down OpenBlade, then Refresh.'
  }
- elseif($State.CanRestore){$presentation.Summary='Your verified original backup is ready to restore.';$presentation.Color='#0067C0';$presentation.Hint='Windows asks for administrator approval. You close and restart the apps yourself.'}
+ elseif($State.CanRestore){$presentation.Summary='Your verified original backup is ready to restore.';$presentation.StatusTone='Accent';$presentation.Hint='Windows asks for administrator approval. You close and restart the apps yourself.'}
  elseif($State.CanPatch){
   $presentation.Summary=if($State.BackupValid){'Ready to patch. Your original backup is verified.'}else{'Ready to patch. The original files will be saved first.'}
-  $presentation.Color='#18814A';$presentation.Hint='Windows asks for administrator approval. You close and restart the apps yourself.'
+  $presentation.StatusTone='Success';$presentation.Hint='Windows asks for administrator approval. You close and restart the apps yourself.'
  }
- else{$presentation.Summary='Keep your backups. Open Backups and diagnostics before making changes.';$presentation.Color='#A15C00'}
+ else{$presentation.Summary='Keep your backups. Open Backups and diagnostics before making changes.';$presentation.StatusTone='Caution'}
  return [pscustomobject]$presentation
 }
 function ConvertTo-DesktopDiagnostic($State,[string]$Outcome='Inspection') {
