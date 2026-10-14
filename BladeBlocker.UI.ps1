@@ -10,13 +10,36 @@ if($administrator -and !$SmokeTest){
  return
 }
 [xml]$markup=@'
-<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Synapse Blade Blocker" Width="600" Height="460" MinWidth="560" MinHeight="420" WindowStartupLocation="CenterScreen" FontFamily="Segoe UI" FontSize="13" Background="#F7F8FA" Foreground="#202938" UseLayoutRounding="True">
- <Window.Icon><DrawingImage><DrawingImage.Drawing><GeometryDrawing Brush="White"><GeometryDrawing.Pen><Pen Brush="#0067C0" Thickness="1.5"/></GeometryDrawing.Pen><GeometryDrawing.Geometry><GeometryGroup><RectangleGeometry Rect="3,3,18,13" RadiusX="2" RadiusY="2"/><LineGeometry StartPoint="12,16" EndPoint="12,20"/><LineGeometry StartPoint="7,20" EndPoint="17,20"/></GeometryGroup></GeometryDrawing.Geometry></GeometryDrawing></DrawingImage.Drawing></DrawingImage></Window.Icon>
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Synapse Blade Blocker" Width="600" Height="460" MinWidth="560" MinHeight="420" WindowStartupLocation="CenterScreen" FontFamily="Segoe UI" FontSize="13" Background="{DynamicResource WindowBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" UseLayoutRounding="True">
  <Window.Resources>
-  <SolidColorBrush x:Key="MutedBrush" Color="#606B7B"/>
+  <!-- OpenBlade green and the WinUI dark palette used by OpenBlade.Tray. -->
+  <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#202020"/>
+  <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFFFFF"/>
+  <SolidColorBrush x:Key="MutedBrush" Color="#C5FFFFFF"/>
+  <SolidColorBrush x:Key="DisabledTextBrush" Color="#5DFFFFFF"/>
+  <SolidColorBrush x:Key="CardBrush" Color="#0DFFFFFF"/>
+  <SolidColorBrush x:Key="CardStrokeBrush" Color="#19000000"/>
+  <SolidColorBrush x:Key="DividerBrush" Color="#15FFFFFF"/>
+  <SolidColorBrush x:Key="ControlBrush" Color="#0FFFFFFF"/>
+  <SolidColorBrush x:Key="ControlHoverBrush" Color="#15FFFFFF"/>
+  <SolidColorBrush x:Key="ControlPressedBrush" Color="#08FFFFFF"/>
+  <SolidColorBrush x:Key="ControlDisabledBrush" Color="#0BFFFFFF"/>
+  <SolidColorBrush x:Key="ControlStrokeBrush" Color="#12FFFFFF"/>
+  <SolidColorBrush x:Key="ControlHoverStrokeBrush" Color="#18FFFFFF"/>
+  <SolidColorBrush x:Key="FocusBrush" Color="#FFFFFF"/>
+  <SolidColorBrush x:Key="AccentBrush" Color="#47E10C"/>
+  <SolidColorBrush x:Key="AccentHoverBrush" Color="#6CE73D"/>
+  <SolidColorBrush x:Key="AccentPressedBrush" Color="#39B40A"/>
+  <SolidColorBrush x:Key="OnAccentBrush" Color="#000000"/>
+  <SolidColorBrush x:Key="CautionBrush" Color="#FCE100"/>
+  <SolidColorBrush x:Key="CautionBackgroundBrush" Color="#433519"/>
+  <SolidColorBrush x:Key="SuccessBrush" Color="#6CCB5F"/>
+  <SolidColorBrush x:Key="NeutralBrush" Color="#9D9D9D"/>
+  <SolidColorBrush x:Key="FlyoutBrush" Color="#2C2C2C"/>
+  <Style TargetType="ToolTip"><Setter Property="Background" Value="{StaticResource FlyoutBrush}"/><Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/><Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/></Style>
   <Style TargetType="Button">
    <Setter Property="Padding" Value="12,5"/><Setter Property="MinHeight" Value="32"/><Setter Property="Margin" Value="0,0,8,0"/>
-   <Setter Property="Background" Value="White"/><Setter Property="Foreground" Value="#202938"/><Setter Property="BorderBrush" Value="#CAD0D9"/><Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="Background" Value="{StaticResource ControlBrush}"/><Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/><Setter Property="BorderBrush" Value="{StaticResource ControlStrokeBrush}"/><Setter Property="BorderThickness" Value="1"/>
    <Setter Property="Cursor" Value="Hand"/>
    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
@@ -26,37 +49,47 @@ if($administrator -and !$SmokeTest){
     </Border>
     <Border x:Name="FocusRing" BorderBrush="Transparent" BorderThickness="2" CornerRadius="7" Margin="-2" IsHitTestVisible="False"/>
     </Grid>
-    <ControlTemplate.Triggers><MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="IsEnabled" Value="True"/></MultiTrigger.Conditions><Setter TargetName="FocusRing" Property="BorderBrush" Value="#0067C0"/></MultiTrigger></ControlTemplate.Triggers>
+    <ControlTemplate.Triggers><MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True"/><Condition Property="IsEnabled" Value="True"/></MultiTrigger.Conditions><Setter TargetName="FocusRing" Property="BorderBrush" Value="{StaticResource FocusBrush}"/></MultiTrigger></ControlTemplate.Triggers>
    </ControlTemplate></Setter.Value></Setter>
    <Style.Triggers>
-    <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#EDF1F6"/><Setter Property="BorderBrush" Value="#A9B5C5"/></Trigger>
-    <Trigger Property="IsPressed" Value="True"><Setter Property="Background" Value="#E1E7EF"/></Trigger>
-    <Trigger Property="IsEnabled" Value="False"><Setter Property="Background" Value="#EFF1F4"/><Setter Property="Foreground" Value="#6B7482"/><Setter Property="BorderBrush" Value="#D7DDE5"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
+    <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{StaticResource ControlHoverBrush}"/><Setter Property="BorderBrush" Value="{StaticResource ControlHoverStrokeBrush}"/></Trigger>
+    <Trigger Property="IsPressed" Value="True"><Setter Property="Background" Value="{StaticResource ControlPressedBrush}"/></Trigger>
+    <Trigger Property="IsEnabled" Value="False"><Setter Property="Background" Value="{StaticResource ControlDisabledBrush}"/><Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}"/><Setter Property="BorderBrush" Value="{StaticResource ControlStrokeBrush}"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
    </Style.Triggers>
   </Style>
   <Style x:Key="PrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-   <Setter Property="Background" Value="#0067C0"/><Setter Property="BorderBrush" Value="#0067C0"/><Setter Property="Foreground" Value="White"/>
-   <Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#005AA9"/><Setter Property="BorderBrush" Value="#005AA9"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter Property="Background" Value="#004E92"/></Trigger></Style.Triggers>
+   <Setter Property="Background" Value="{StaticResource AccentBrush}"/><Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/><Setter Property="Foreground" Value="{StaticResource OnAccentBrush}"/>
+   <Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{StaticResource AccentHoverBrush}"/><Setter Property="BorderBrush" Value="{StaticResource AccentHoverBrush}"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter Property="Background" Value="{StaticResource AccentPressedBrush}"/></Trigger></Style.Triggers>
   </Style>
   <Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap"/></Style>
-  <Style x:Key="NoticeStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}"><Setter Property="Background" Value="#FFF5E5"/><Setter Property="Foreground" Value="#805000"/><Setter Property="Padding" Value="10,8"/><Setter Property="Margin" Value="0,12,0,0"/><Style.Triggers><Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger></Style.Triggers></Style>
+  <Style x:Key="NoticeStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}"><Setter Property="Background" Value="{StaticResource CautionBackgroundBrush}"/><Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/><Setter Property="Padding" Value="10,8"/><Setter Property="Margin" Value="0,12,0,0"/><Style.Triggers><Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger></Style.Triggers></Style>
+  <Style x:Key="ExpanderHeaderStyle" TargetType="ToggleButton">
+   <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/><Setter Property="Background" Value="Transparent"/><Setter Property="Padding" Value="4,4"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton">
+    <Grid><Border x:Name="HeaderSurface" Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Path x:Name="Chevron" Data="M1,0 L5,4 L1,8" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.5" Width="6" Height="8" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"/><ContentPresenter Grid.Column="1" Content="{TemplateBinding Content}" RecognizesAccessKey="True" VerticalAlignment="Center"/></Grid></Border><Border x:Name="HeaderFocus" BorderBrush="Transparent" BorderThickness="2" CornerRadius="6" Margin="-2" IsHitTestVisible="False"/></Grid>
+    <ControlTemplate.Triggers><Trigger Property="IsChecked" Value="True"><Setter TargetName="Chevron" Property="RenderTransform"><Setter.Value><RotateTransform Angle="90"/></Setter.Value></Setter></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="HeaderSurface" Property="Background" Value="{StaticResource ControlHoverBrush}"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="HeaderSurface" Property="Background" Value="{StaticResource ControlPressedBrush}"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="HeaderFocus" Property="BorderBrush" Value="{StaticResource FocusBrush}"/></Trigger></ControlTemplate.Triggers>
+   </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style TargetType="Expander"><Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Expander"><StackPanel><ToggleButton Style="{StaticResource ExpanderHeaderStyle}" Content="{TemplateBinding Header}" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" AutomationProperties.Name="{Binding Header, RelativeSource={RelativeSource TemplatedParent}}"/><ContentPresenter x:Name="ExpansionContent" Visibility="Collapsed"/></StackPanel><ControlTemplate.Triggers><Trigger Property="IsExpanded" Value="True"><Setter TargetName="ExpansionContent" Property="Visibility" Value="Visible"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+  <Style TargetType="ScrollBar"><Setter Property="Width" Value="12"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ScrollBar"><Track x:Name="PART_Track" Orientation="Vertical" IsDirectionReversed="True" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}" Value="{TemplateBinding Value}" ViewportSize="{TemplateBinding ViewportSize}"><Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.PageUpCommand"><RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></RepeatButton.Template></RepeatButton></Track.DecreaseRepeatButton><Track.Thumb><Thumb><Thumb.Template><ControlTemplate TargetType="Thumb"><Border x:Name="ThumbSurface" Background="{StaticResource DisabledTextBrush}" CornerRadius="3" Margin="3,2" MinHeight="18"/><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ThumbSurface" Property="Background" Value="{StaticResource MutedBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Thumb.Template></Thumb></Track.Thumb><Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.PageDownCommand"><RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></RepeatButton.Template></RepeatButton></Track.IncreaseRepeatButton></Track></ControlTemplate></Setter.Value></Setter></Style>
  </Window.Resources>
  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
- <StackPanel Margin="20,18">
+ <StackPanel Margin="20,18,20,16">
   <Grid>
-   <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-   <StackPanel><TextBlock Text="Synapse Blade Blocker" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="Keep Synapse for your peripherals" Margin="0,3,0,0" Foreground="{StaticResource MutedBrush}"/></StackPanel>
-   <Border Grid.Column="1" Background="#E9EDF3" CornerRadius="4" Padding="8,3" VerticalAlignment="Top" Margin="12,4,0,0"><TextBlock Text="Experimental" FontSize="11" Foreground="#586477"/></Border>
+   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <Image x:Name="BrandImage" Width="40" Height="40" Stretch="Uniform" Margin="0,0,12,0" VerticalAlignment="Center" Focusable="False"/>
+   <StackPanel Grid.Column="1"><TextBlock Text="Synapse Blade Blocker" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="Keep Synapse for your peripherals" Margin="0,3,0,0" Foreground="{StaticResource MutedBrush}"/></StackPanel>
+   <Border Grid.Column="2" Background="{StaticResource ControlBrush}" CornerRadius="4" Padding="8,3" VerticalAlignment="Top" Margin="12,4,0,0"><TextBlock Text="Experimental" FontSize="11" Foreground="{StaticResource MutedBrush}"/></Border>
   </Grid>
-  <Border Background="White" BorderBrush="#DFE3EA" BorderThickness="1" CornerRadius="7" Padding="14" Margin="0,16,0,0">
+  <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" CornerRadius="7" Padding="14" Margin="0,16,0,0">
    <StackPanel>
     <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-     <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="#64748B" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock x:Name="StateText" Text="Checking Synapse..." FontSize="17" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite"/></StackPanel>
+     <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="{StaticResource NeutralBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock x:Name="StateText" Text="Checking Synapse..." FontSize="17" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite"/></StackPanel>
      <Button Grid.Column="1" x:Name="RefreshButton" Content="Re_fresh" IsEnabled="False" Margin="12,0,0,0" MinHeight="28" Padding="10,3"/>
     </Grid>
     <TextBlock x:Name="InstallText" Text="Finding your installation..." Margin="16,3,0,0" FontSize="12" Foreground="{StaticResource MutedBrush}"/>
     <TextBlock x:Name="SummaryText" Text="Checking files and backups..." Margin="0,12,0,0" LineHeight="19"/>
-    <ProgressBar x:Name="BusyBar" Height="2" IsIndeterminate="True" Margin="0,12,0,0" AutomationProperties.Name="Operation in progress"/>
+    <ProgressBar x:Name="BusyBar" Height="2" IsIndeterminate="True" Foreground="{StaticResource AccentBrush}" Background="{StaticResource ControlBrush}" Margin="0,12,0,0" AutomationProperties.Name="Operation in progress"/>
    </StackPanel>
   </Border>
   <TextBlock x:Name="NoticeText" Style="{StaticResource NoticeStyle}" AutomationProperties.LiveSetting="Assertive"/>
@@ -65,7 +98,7 @@ if($administrator -and !$SmokeTest){
    <Button x:Name="RestoreButton" Content="_Restore" IsEnabled="False" MinWidth="80" ToolTip="Restore the matching original backup."/>
   </WrapPanel>
   <TextBlock x:Name="ActionHintText" Text="" Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,8,0,0" LineHeight="17"/>
-  <Border BorderBrush="#DFE3EA" BorderThickness="0,1,0,1" Padding="0,13" Margin="0,16,0,0">
+  <Border BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,1,0,1" Padding="0,13" Margin="0,16,0,0">
    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
     <StackPanel Margin="0,0,12,0"><TextBlock Text="Backups" FontWeight="SemiBold"/><TextBlock x:Name="BackupLocationText" Text="Checking location..." Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,3,0,0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/></StackPanel>
     <Button Grid.Column="1" x:Name="OpenBackupsButton" Content="_Open folder" IsEnabled="False" VerticalAlignment="Center" ToolTip="Open the folder used for new backups."/>
@@ -96,6 +129,26 @@ if($administrator -and !$SmokeTest){
 '@
 $reader=New-Object System.Xml.XmlNodeReader $markup
 $window=[Windows.Markup.XamlReader]::Load($reader)
+$brandDirectory=Join-Path $PSScriptRoot 'Assets\Brand'
+$window.Icon=[Windows.Media.Imaging.BitmapFrame]::Create([uri](Join-Path $brandDirectory 'OpenBlade.ico'),[Windows.Media.Imaging.BitmapCreateOptions]::PreservePixelFormat,[Windows.Media.Imaging.BitmapCacheOption]::OnLoad)
+$window.FindName('BrandImage').Source=[Windows.Media.Imaging.BitmapFrame]::Create([uri](Join-Path $brandDirectory 'OpenBlade.png'),[Windows.Media.Imaging.BitmapCreateOptions]::PreservePixelFormat,[Windows.Media.Imaging.BitmapCacheOption]::OnLoad)
+# Fixed window-only appearance; unsupported DWM attributes leave native chrome intact.
+if(!('BlockerWindowTheme' -as [type])){
+ Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public static class BlockerWindowTheme {
+ [DllImport("dwmapi.dll")] private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
+ public static void Apply(IntPtr hwnd) {
+  int dark = 1, caption = 0x202020, text = 0xFFFFFF;
+  DwmSetWindowAttribute(hwnd, 20, ref dark, 4);
+  DwmSetWindowAttribute(hwnd, 35, ref caption, 4);
+  DwmSetWindowAttribute(hwnd, 36, ref text, 4);
+ }
+}
+"@
+}
+$window.Add_SourceInitialized({[BlockerWindowTheme]::Apply((New-Object Windows.Interop.WindowInteropHelper $window).Handle)})
 $controls=@{}
 foreach($name in @('StateText','StatusDot','SummaryText','ActionHintText','InstallText','InstallationPathText','RuntimeText','BusyBar','NoticeText','DetailsText','PatchButton','RestoreButton','RefreshButton','OpenBackupsButton','ChangeBackupsButton','DefaultBackupsButton','BackupLocationText','PreparationText','RecoveryExpander','ChooseButton','AutomaticButton','CopyButton','ReportsButton')){$controls[$name]=$window.FindName($name)}
 $script:desktopJob=$null;$script:desktopResult=$null;$script:selectedPreparation='';$script:lastOutcome='Inspection';$script:recoverySuggested=$false
@@ -114,7 +167,7 @@ function Show-DesktopState($Result) {
  $controls.StateText.Text=$presentation.Title
  $controls.SummaryText.Text=$presentation.Summary
  $controls.ActionHintText.Text=$presentation.Hint
- $controls.StatusDot.Fill=(New-Object Windows.Media.BrushConverter).ConvertFromString($presentation.Color)
+ $controls.StatusDot.Fill=$window.FindResource($presentation.StatusTone+'Brush')
   if($presentation.ExpandRecovery -and !$script:recoverySuggested){
   $controls.RecoveryExpander.IsExpanded=$true
   $handle=(New-Object Windows.Interop.WindowInteropHelper $window).Handle
@@ -150,7 +203,7 @@ function Show-DesktopInspectionFailure {
  $controls.StateText.Text='Inspection failed'
  $controls.SummaryText.Text='Could not read a complete status.'
  $controls.ActionHintText.Text='Refresh before attempting an operation. Keep all backups.'
- $controls.StatusDot.Fill=(New-Object Windows.Media.BrushConverter).ConvertFromString('#A15C00')
+ $controls.StatusDot.Fill=$window.FindResource('CautionBrush')
  $controls.InstallText.Text='Installation unavailable';$controls.InstallText.ToolTip=$null
  $controls.InstallationPathText.Text='';$controls.RuntimeText.Text='';$controls.DetailsText.Text=''
  $controls.NoticeText.Text='Could not read a complete status. Refresh before attempting an operation. Keep all backups.'
