@@ -199,6 +199,29 @@ Assert ($r.Outcome -eq 'Inspection' -and $script:starts -eq 0) 'Refresh attempte
 $report=ConvertTo-DesktopDiagnostic $original 'OperationFailed'
 Assert ($report -notmatch 'private-user|original.s backup|private exception|Installation|PreparationDirectory|Message') 'Diagnostic leaked private paths or exceptions'
 Assert (($report | ConvertFrom-Json).ArchiveSha256 -eq ('a'*64)) 'Diagnostic omitted archive evidence'
+
+# The compact summary must describe the same admission state as the action buttons.
+$presentationState=[pscustomobject]@{State='Original';DisplayState='No blocker edits detected';ContentState='NoPatchDetected';BackupValid=$true;MarkerPresent=$false;BackupRoot='C:\backups';PreparationDirectory='';NodeReady=$true;ControllersStopped=$false;CanPatch=$false;CanRestore=$false}
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.Summary -match 'require.*stopped' -and $p.Summary -notmatch 'Ready') 'Summary claimed readiness with controllers not confirmed stopped'
+$presentationState.State='No matching preparation';$presentationState.ContentState='CurrentPatch';$presentationState.MarkerPresent=$true;$presentationState.BackupValid=$false
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.ExpandRecovery -and $p.Summary -match 'matching original backup') 'Missing original was hidden behind less relevant controller instructions'
+$presentationState.State='Unknown archive';$presentationState.ContentState='NoPatchDetected';$presentationState.MarkerPresent=$false;$presentationState.PreparationDirectory='C:\selected-backup'
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.ExpandRecovery -and $p.Hint -match 'Automatic') 'Mismatched selected backup omitted the recovery choice'
+$presentationState.PreparationDirectory=''
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.ExpandRecovery -and $p.Summary -match 'archive does not match' -and $p.Summary -notmatch 'selected') 'Unknown archive summary invented a selected backup'
+$presentationState.State='Experimental blocker applied';$presentationState.ContentState='Unreadable';$presentationState.BackupValid=$true;$presentationState.CanRestore=$true;$presentationState.ControllersStopped=$true;$presentationState.NodeReady=$false;$presentationState.BackupRoot=$null
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.Summary -match 'ready to restore' -and $p.Summary -notmatch 'Install Node') 'Summary blocked a verified restore on optional preparation requirements'
+$presentationState.State='No matching preparation';$presentationState.ContentState='NoPatchDetected';$presentationState.CanRestore=$false;$presentationState.CanPatch=$true;$presentationState.BackupValid=$false;$presentationState.NodeReady=$true;$presentationState.BackupRoot='C:\backups'
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.Summary -match 'saved first') 'First patch summary omitted original-backup preparation'
+$presentationState.State='Unavailable';$presentationState.CanPatch=$false
+$p=Get-DesktopPresentation $presentationState
+Assert ($p.Summary -notmatch 'Ready') 'Unavailable inspection claimed readiness'
 # Cross the real Windows -File argument boundary, without elevation or installed writes.
 $scratch=Join-Path ([IO.Path]::GetTempPath()) ('blocker-desktop-boundary-'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $scratch | Out-Null

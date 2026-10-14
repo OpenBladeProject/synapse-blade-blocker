@@ -14,7 +14,7 @@ You need:
 - Windows PowerShell 5.1 or PowerShell 7.
 - Node.js 22 or newer.
 
-Backups go in **Documents > Synapse Blade Blocker > Backups** by default. Use **Open backups folder** to find them or **Choose backup location** to save new backups elsewhere. The blocker remembers your choice and checks earlier locations too, even after you move or replace the package.
+Backups go in **Documents > Synapse Blade Blocker > Backups** by default. In the window's **Backups** row, use **Open folder** to find them or **Choose location…** to save new backups elsewhere. The blocker remembers your choice and checks earlier locations too, even after you move or replace the package.
 
 ## Patch Synapse
 

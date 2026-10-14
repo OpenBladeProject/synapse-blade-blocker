@@ -72,10 +72,44 @@ function Get-DesktopState([string]$PreparationDirectory,[string]$InstallDirector
   if($result.State -eq 'Original' -and !$result.PatchValid){$notes.Add('The earlier prepared patch is missing or has changed. Patch will create a fresh preparation with the current code; keep the original backup.')}
   if(!$result.ControllersStopped){$notes.Add('Patch and Restore are disabled while Synapse or OpenBlade is running. Exit Synapse, shut down OpenBlade, then Refresh.')}
   if(!$result.NodeReady){$notes.Add('Patch requires Node.js 22 or newer on PATH. Install it from nodejs.org and reopen this window. A verified Restore does not require Node.js.')}
-  if(!$result.BackupRoot){$notes.Add('The saved backup location is unavailable. Use Choose backup location to save new backups elsewhere, or select an existing verified preparation to restore.')}
+  if(!$result.BackupRoot){$notes.Add('The saved backup location is unavailable. Use Choose location in the Backups row to save new backups elsewhere, or select an existing verified preparation to restore.')}
   $result.Message=$notes -join "`n`n"
  }catch{$result.Message='Could not inspect a standard AppEngine installation. Install Razer Synapse, close duplicate AppEngine instances, then Refresh. Installed files were not changed.'}
  [pscustomobject]$result
+}
+
+function Get-DesktopPresentation($State) {
+ $presentation=[ordered]@{Title=$State.DisplayState;Summary='Refresh to check the Synapse files and backups.';Hint='Windows asks for administrator approval. You close and restart the apps yourself.';Color='#64748B';ExpandRecovery=$false}
+ if($State.ContentState -eq 'NoPatchDetected'){$presentation.Title='No blocker patch detected'}
+ if($State.State -eq 'Unavailable'){$presentation.Summary='Could not check this Synapse installation. See the details below.';$presentation.Color='#A15C00'}
+ elseif(!$State.BackupValid -and ($State.MarkerPresent -or $State.ContentState -in @('CurrentPatch','LegacyPatch','PartialPatch'))){
+  $presentation.Summary='Restore needs the matching original backup.'
+  $presentation.Hint='Choose the earlier preparation folder under Backups and diagnostics.'
+  $presentation.Color='#A15C00';$presentation.ExpandRecovery=$true
+ }
+ elseif($State.State -eq 'Unknown archive' -and !$State.PreparationDirectory){
+  $presentation.Summary='The archive does not match a verified original or patch.'
+  $presentation.Hint='Keep your backups and check Backups and diagnostics before making changes.'
+  $presentation.Color='#A15C00';$presentation.ExpandRecovery=$true
+ }
+ elseif($State.State -eq 'Unknown archive' -or ($State.State -eq 'No matching preparation' -and $State.PreparationDirectory)){
+  $presentation.Summary='The selected backup does not match this installation.'
+  $presentation.Hint='Choose a matching preparation or use Automatic under Backups and diagnostics.'
+  $presentation.Color='#A15C00';$presentation.ExpandRecovery=$true
+ }
+ elseif(!$State.BackupRoot -and !$State.CanRestore){$presentation.Summary='Choose a backup location to save new originals.';$presentation.Color='#A15C00'}
+ elseif(!$State.NodeReady -and $State.ContentState -eq 'NoPatchDetected' -and !$State.CanRestore){$presentation.Summary='Install Node.js 22 or newer before patching.';$presentation.Color='#A15C00'}
+ elseif(!$State.ControllersStopped){
+  $presentation.Summary='Patch and Restore require Synapse and OpenBlade to be stopped.'
+  $presentation.Hint='Exit Synapse and use OpenBlade Settings > Shut down OpenBlade, then Refresh.'
+ }
+ elseif($State.CanRestore){$presentation.Summary='Your verified original backup is ready to restore.';$presentation.Color='#0067C0'}
+ elseif($State.CanPatch){
+  $presentation.Summary=if($State.BackupValid){'Ready to patch. Your original backup is verified.'}else{'Ready to patch. The original files will be saved first.'}
+  $presentation.Color='#18814A'
+ }
+ else{$presentation.Summary='Keep your backups and check the details below before making changes.';$presentation.Color='#A15C00'}
+ return [pscustomobject]$presentation
 }
 
 function ConvertTo-DesktopDiagnostic($State,[string]$Outcome='Inspection') {
@@ -109,12 +143,12 @@ function Invoke-DesktopTask([ValidateSet('Refresh','Patch','Restore')][string]$A
    $verified=if($Action -eq 'Patch'){$state.State -eq 'Experimental blocker applied' -and $state.AppliedMetadataMatches -and $state.BackupValid}else{$state.State -eq 'Original' -and !$state.MarkerPresent -and $state.BackupValid}
    if($exitCode -ne 0 -or !$verified){$outcome='VerificationRequired';$notice='The operation did not complete with verified success. Do not restart Synapse yet. Inspect the status below and keep all preparations and backups.'
     $notice+=' Preserve every app.asar.blade-blocker-backup-* file in '+(Join-Path $InstallDirectory 'resources')+' and the selected preparation folder. These local recovery locations are omitted from copied diagnostics.'}
-   else{$outcome='Verified'+$Action;$notice=if($Action -eq 'Patch'){'Patch verified on disk. Restart Synapse manually, then check its status in OpenBlade. Your original is saved at '+$state.PreparationDirectory+'. Use Open backups folder to find it.'}else{'Original archive restored and verified; applied metadata removed. You can restart Synapse manually. All backups were preserved.'}}
+   else{$outcome='Verified'+$Action;$notice=if($Action -eq 'Patch'){'Patch verified on disk. Restart Synapse manually, then check its status in OpenBlade. Your original is saved at '+$state.PreparationDirectory+'. Use Open folder in the Backups row to find it.'}else{'Original archive restored and verified; applied metadata removed. You can restart Synapse manually. All backups were preserved.'}}
   }catch{
    $cancelled=$false;$errorException=$_.Exception
    while($errorException){if($errorException -is [ComponentModel.Win32Exception] -and $errorException.NativeErrorCode -eq 1223){$cancelled=$true};$errorException=$errorException.InnerException}
    $outcome=if($cancelled){'ElevationCancelled'}else{'OperationFailed'}
-   $notice=if($cancelled){'Administrator approval was cancelled. The elevated operation did not start. Any completed preparation was preserved.'}elseif($_.Exception.Message -like 'Backup location is unavailable*'){'The backup location is unavailable or not writable. Use Choose backup location to select another folder, then try again.'}else{'The operation stopped. Preconditions may have changed or preparation may be incompatible. Refresh, check the requirements below, and keep all backups. Use Open saved reports for structural compatibility details, or Copy diagnostic details to report this status at github.com/OSSBlade/synapse-blade-blocker/issues.'}
+   $notice=if($cancelled){'Administrator approval was cancelled. The elevated operation did not start. Any completed preparation was preserved.'}elseif($_.Exception.Message -like 'Backup location is unavailable*'){'The backup location is unavailable or not writable. Use Choose location in the Backups row to select another folder, then try again.'}else{'The operation stopped. Preconditions may have changed or preparation may be incompatible. Refresh, check the requirements below, and keep all backups. Use Open saved reports for structural compatibility details, or Copy diagnostic details to report this status at github.com/OSSBlade/synapse-blade-blocker/issues.'}
    $state=Get-DesktopState $state.PreparationDirectory $state.Installation
   }
  }
