@@ -79,7 +79,7 @@ if($administrator -and !$SmokeTest){
    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
    <Image x:Name="BrandImage" Width="40" Height="40" Stretch="Uniform" Margin="0,0,12,0" VerticalAlignment="Center" Focusable="False"/>
    <StackPanel Grid.Column="1"><TextBlock Text="Synapse Blade Blocker" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="Keep Synapse for your peripherals" Margin="0,3,0,0" Foreground="{StaticResource MutedBrush}"/></StackPanel>
-   <Border Grid.Column="2" Background="{StaticResource ControlBrush}" CornerRadius="4" Padding="8,3" VerticalAlignment="Top" Margin="12,4,0,0"><TextBlock Text="Experimental" FontSize="11" Foreground="{StaticResource MutedBrush}"/></Border>
+   <Border Grid.Column="2" Background="{StaticResource ControlBrush}" CornerRadius="4" Padding="8,3" VerticalAlignment="Top" Margin="12,4,0,0"><TextBlock x:Name="VersionText" Text="" FontSize="11" Foreground="{StaticResource MutedBrush}"/></Border>
   </Grid>
   <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource DividerBrush}" BorderThickness="1" CornerRadius="7" Padding="14" Margin="0,16,0,0">
    <StackPanel>
@@ -129,6 +129,10 @@ if($administrator -and !$SmokeTest){
 '@
 $reader=New-Object System.Xml.XmlNodeReader $markup
 $window=[Windows.Markup.XamlReader]::Load($reader)
+$toolVersion=Get-ToolVersion
+$versionText=$window.FindName('VersionText')
+$versionText.Text='v'+$toolVersion
+[Windows.Automation.AutomationProperties]::SetName($versionText,'Blocker version '+$toolVersion)
 $brandDirectory=Join-Path $PSScriptRoot 'Assets\Brand'
 $window.Icon=[Windows.Media.Imaging.BitmapFrame]::Create([uri](Join-Path $brandDirectory 'OpenBlade.ico'),[Windows.Media.Imaging.BitmapCreateOptions]::PreservePixelFormat,[Windows.Media.Imaging.BitmapCacheOption]::OnLoad)
 $window.FindName('BrandImage').Source=[Windows.Media.Imaging.BitmapFrame]::Create([uri](Join-Path $brandDirectory 'OpenBlade.png'),[Windows.Media.Imaging.BitmapCreateOptions]::PreservePixelFormat,[Windows.Media.Imaging.BitmapCacheOption]::OnLoad)
@@ -317,7 +321,7 @@ if($SmokeTest){
   $bitmap.Render($window);$encoder=New-Object Windows.Media.Imaging.PngBitmapEncoder;$encoder.Frames.Add([Windows.Media.Imaging.BitmapFrame]::Create($bitmap))
   $stream=[IO.File]::Create($SmokeScreenshot);try{$encoder.Save($stream)}finally{$stream.Dispose()}
  }
- [pscustomobject]@{WindowConstructed=$true;IsVisible=$window.IsVisible;Visibility=[string]$window.Visibility;IsLoaded=$window.IsLoaded;ReadOnlyInspectionCompleted=[bool]($SmokeInspect -and $script:desktopResult);State=$controls.StateText.Text;ControlCount=$controls.Count;PatchEnabled=$controls.PatchButton.IsEnabled;RestoreEnabled=$controls.RestoreButton.IsEnabled;Width=$window.ActualWidth;Height=$window.ActualHeight} | ConvertTo-Json
+ [pscustomobject]@{WindowConstructed=$true;IsVisible=$window.IsVisible;Visibility=[string]$window.Visibility;IsLoaded=$window.IsLoaded;ReadOnlyInspectionCompleted=[bool]($SmokeInspect -and $script:desktopResult);State=$controls.StateText.Text;ControlCount=$controls.Count;VersionBadge=$window.FindName('VersionText').Text;PatchEnabled=$controls.PatchButton.IsEnabled;RestoreEnabled=$controls.RestoreButton.IsEnabled;Width=$window.ActualWidth;Height=$window.ActualHeight} | ConvertTo-Json
  $window.Close();return
 }
 $window.Add_ContentRendered({$timer.Start();Start-DesktopTask 'Refresh'})
