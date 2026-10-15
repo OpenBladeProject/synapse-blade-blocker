@@ -1,5 +1,7 @@
 # Technical guide
 
+English | [简体中文](docs/zh-CN/TECHNICAL.md) | [Русский](docs/ru-RU/TECHNICAL.md)
+
 Use the [README](README.md) for the window workflow. The commands below prepare, apply, and restore the patch from PowerShell.
 
 ## Compatibility and status

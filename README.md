@@ -1,5 +1,7 @@
 # Synapse Blade Blocker
 
+English | [简体中文](README.zh-CN.md) | [Русский](README.ru-RU.md)
+
 Keep Razer Synapse for your mouse, keyboard, and other peripherals while keeping your Razer Blade laptop out of Synapse's device list. You can then use OpenBlade to control the laptop.
 
 The patch is experimental and reversible. It recognizes 40 reviewed Blade product IDs; physical testing covers a Blade 16 with a Pro Click V2 mouse. See the [tested configurations and limits](VALIDATION.md) for details. It does not provide security isolation.

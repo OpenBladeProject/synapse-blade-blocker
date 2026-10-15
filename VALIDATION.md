@@ -1,5 +1,7 @@
 # Validation record
 
+English | [简体中文](docs/zh-CN/VALIDATION.md) | [Русский](docs/ru-RU/VALIDATION.md)
+
 ## Experimental OpenBlade model coverage: 2026-10-15
 
 The five experimental profiles in [OpenBlade core at 779df44a](https://github.com/OSSBlade/openblade-core/blob/779df44a/src/OpenBlade.Protocol/ExperimentalBladeModels.cs) map RZ09-0483 to `1532:029F`, RZ09-0482 to `1532:029D`, RZ09-0530 to `1532:02C5`, RZ09-0328 to `1532:0255`, and RZ09-0484 to `1532:02A0`. All five IDs were already present in this repository's reviewed registry at `v0.3.1`; no policy, registry, patch output, or firmware support was added for this coverage update.
