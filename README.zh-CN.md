@@ -4,7 +4,7 @@
 
 [English](README.md) | 简体中文 | [Русский](README.ru-RU.md)
 
-你可以继续用 Razer Synapse 管理鼠标、键盘和其他外设，同时把 Razer Blade 笔记本电脑从 Synapse 的设备列表中排除。这样便可使用 OpenBlade 控制笔记本电脑。
+你可以继续用 Razer Synapse 管理鼠标、键盘和其他外设，同时把 Razer Blade 笔记本电脑从 Synapse 的设备列表中排除。笔记本电脑则交由 OpenBlade 控制。
 
 此补丁仍处于实验阶段，可以还原。它能识别 40 个经过审查的 Blade 产品 ID；实际测试使用的是一台 Blade 16 和一个 Pro Click V2 鼠标。详情见[已测试的配置和限制](docs/zh-CN/VALIDATION.md)。此补丁不提供安全隔离。
 
@@ -21,7 +21,7 @@
 | Blade 15 Base (Early 2020) | RZ09-0328 | `1532:0255` |
 | Blade 18 (2023) | RZ09-0484 | `1532:02A0` |
 
-这些 ID 已列入经过审查的注册表，Synapse Blade Blocker 0.3.1 已包含它们。按照下文相同的 **Patch** 步骤操作，无需选择型号。自动化检查覆盖了这些型号的排除路径。尚未在这五个型号上完成阻止功能的实际测试；OpenBlade 的[实验支持限制](https://github.com/OpenBladeProject/openblade-core/blob/main/docs/zh-CN/experimental-blade-support.md)仍然适用。
+这些 ID 已列入经过审查的注册表，Synapse Blade Blocker 0.3.1 已包含它们。按下文的 **Patch** 步骤操作即可，无需选择型号。自动化检查覆盖了这些型号的排除路径。尚未在这五款笔记本上实机测试 Blocker；OpenBlade 的[实验支持限制](https://github.com/OpenBladeProject/openblade-core/blob/main/docs/zh-CN/experimental-blade-support.md)仍然适用。
 
 <a id="download"></a>
 ## 下载
@@ -40,11 +40,11 @@
 ## 修补 Synapse
 
 1. 退出 Synapse，并确保其更新程序保持关闭。如果 OpenBlade 正在运行，请选择 **Settings > Shut down OpenBlade**。
-2. 双击解压目录中的 **Start-BladeBlocker.cmd**。窗口会检查当前安装，并说明缺少的要求。
+2. 双击解压目录中的 **Start-BladeBlocker.cmd**。窗口会检查当前安装，并提示还缺少哪些运行条件。
 3. 选择 **Patch**。阻止工具会检查文件，并在需要时保存原始文件。出现 Windows 管理员权限提示时，接受该提示。
 4. 等待工具确认成功，再正常启动 Synapse。启动 OpenBlade 前，确认外设可以使用，并确认设备列表中没有这台 Blade。
 
-请使用[最新的 OpenBlade 版本](https://github.com/OpenBladeProject/openblade-core/releases/latest)获得当前的共存修复。OpenBlade 会先检查补丁是否已经应用，并确认 Synapse 在应用补丁后重新启动，然后才允许两者同时运行。
+[最新的 OpenBlade 版本](https://github.com/OpenBladeProject/openblade-core/releases/latest)包含目前已有的共存问题修复，请更新后再使用。OpenBlade 会先检查补丁是否已经应用，并确认 Synapse 在应用补丁后重新启动，然后才允许两者同时运行。
 
 Synapse 更新后，重新打开阻止工具并刷新状态。再次应用补丁前，应针对更新后的安装重新执行准备步骤，并保留新的原始文件。旧备份不能还原不同的 Synapse 版本。
 
