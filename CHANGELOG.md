@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Document and add named regression coverage for the five experimental OpenBlade models already included in the blocker exclusion policy. ([#22](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/22))
+
 ## [0.3.1] - 2026-10-14
 
 ### Fixed
