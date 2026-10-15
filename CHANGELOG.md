@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Rewrite Chinese and Russian guides with clearer instructions and more natural wording. ([#25](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/25))
 - Add complete Simplified Chinese and Russian versions of the README, technical guide and validation record, with reciprocal language links. ([#23](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/23))
 - Document and add named regression coverage for the five experimental OpenBlade models already included in the blocker exclusion policy. ([#22](https://github.com/OpenBladeProject/synapse-blade-blocker/pull/22))
 
