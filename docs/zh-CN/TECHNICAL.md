@@ -11,22 +11,22 @@
 
 ## 兼容性与状态
 
-离线检查工具版本可运行以下命令。
-它不需要 Synapse、Node.js、安装位置发现或管理员权限：
+运行以下命令可离线查看工具版本。
+此命令不需要 Synapse、Node.js 或管理员权限，也无需查找安装位置：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Version
 ```
 
 工具使用每个已安装版本自身的原始归档准备补丁，不使用 Synapse 版本或可执行文件哈希白名单。
-每个结构化修改位置都必须恰好匹配一次。
+每处待修改的代码结构都必须恰好匹配一次。
 准备过程会检查 JavaScript 语法，并逐字节验证未修改的打包文件。
 布局有变化或不完整时，准备会停止并生成脱敏问题报告。
 
-窗口在检查和准备期间保持响应，并说明缺少的前置条件、正在运行的控制程序、
-缺失备份和已变化的安装。取消管理员权限提示不会更改已安装归档。
+检查和准备期间窗口仍可操作，并会提示未满足的前置条件、正在运行的控制程序、
+缺失的备份或已发生变化的安装。取消管理员权限提示不会更改已安装归档。
 Apply 和 Restore 不会停止或重启应用。
-只有所选操作以提升权限运行，窗口仍保持普通用户权限。
+只有所选操作使用管理员权限，窗口仍保持普通用户权限。
 
 Synapse 更新后，请刷新状态并为更新后的构建重新准备。
 不要将旧备份用于已变化的安装。
@@ -57,14 +57,14 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Mode
 本地模块检查前，将 `BLOCKER_PREPARATION_DIRECTORY` 设为 Prepare 返回的目录，
 再运行 `npm run test:local`。
 
-发现逻辑优先使用活动 AppEngine 进程的精确目录；
+查找安装位置时，优先使用正在运行的 AppEngine 进程所在的实际目录；
 不可用时，使用 `%ProgramFiles%\Razer\RazerAppEngine` 下最新的 `app-VERSION` 目录。
 两个脚本均接受 `-InstallDirectory`，显式指定该标准布局中的目录。
 有歧义的活动安装和含重解析点的安装路径会被拒绝。
 
 每次准备默认在 **Documents > Synapse Blade Blocker > Backups**
 中新建 `<timestamp>-<id>` 目录。
-它使用 Windows 的 Documents 位置，包括重定向目录。
+该位置取自 Windows 的 Documents 设置，也支持重定向后的目录。
 在窗口 **Backups** 行使用 **Open folder** 打开目录，
 或用 **Choose location…** 将新备份保存在其他位置。旧备份留在原处。
 **Use Documents default** 可切回 Documents 默认位置。
@@ -86,7 +86,7 @@ Blocker 将选择和旧位置原子保存到 `%LOCALAPPDATA%\SynapseBladeBlocker
 Apply 在写入前检查补丁源码指纹，以及已验证原始归档的确定性转换结果，
 因此过时或被修改的预制补丁不能当作当前补丁复用。
 旧原始文件仍可用于 Restore。
-Apply 和 Restore 始终显式接收解析后的准备路径，包括跨越管理员权限提示时；
+Apply 和 Restore 始终显式接收解析后的准备路径，通过管理员权限提示启动子进程时也不例外；
 可执行文件/归档完整性和控制程序已停止的检查仍然必需。
 
 Apply 和 Restore 查找归档与可执行文件哈希匹配所选安装的准备记录。
@@ -102,7 +102,7 @@ Apply 和 Restore 查找归档与可执行文件哈希匹配所选安装的准�
 
 ## 应用补丁
 
-退出 Synapse，并通过 OpenBlade 的设置页面关闭它。在管理员 PowerShell 窗口运行 Apply：
+退出 Synapse，再通过 OpenBlade 的设置页面关闭 OpenBlade。在管理员 PowerShell 窗口运行 Apply：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\BladeBlocker.ps1 -Mode Apply
@@ -123,11 +123,11 @@ Status、准备、Apply 和 Restore 的成功输出均报告来自同一包的�
 [OpenBlade 0.21.0 或更新版本](https://github.com/OSSBlade/openblade-core/releases/latest)
 会检查实际已安装文件，以及 Synapse 是否在应用补丁后重启，以识别已应用补丁。
 补丁缺失、已变化或过时时，常规冲突检查继续生效。
-后续共存修复请使用最新版本。
+后续版本继续修复了共存问题，请使用最新版本。
 
 Synapse 界面加载后可能启动 Windows 灯光辅助程序 `razerwdl`。
 仅当该辅助程序的身份及已打补丁的 Synapse 父进程均已验证，
-且最新 Windows 设备检查未发现被排除的 Blade 灯光接口时，OpenBlade 才接受它。
+且重新检查 Windows 设备后未发现被排除的 Blade 灯光接口时，OpenBlade 才接受它。
 未知设备身份、枚举失败、独立辅助程序和其他竞争控制程序仍受原有检查限制。
 这不会禁用 Windows 灯光或外设功能。
 
@@ -159,7 +159,7 @@ Apply 可在验证已打补丁的归档后重建缺失元数据。
 请保留每份本地原始文件和安装备份。
 工具会保留未知归档和可执行文件更新，不会用旧构建覆盖它们。
 更新后请为新的原始构建重新准备。重新应用补丁需要用户操作。
-进程控制由用户负责，工具不安装服务或驱动。
+应用的启动和退出由用户操作，工具不安装服务或驱动。
 
 替换期间保持更新程序关闭。
 最终哈希检查能检测已经发生的更新，但无法阻止更新程序随后立即更改文件。
@@ -181,7 +181,7 @@ Apply 可在验证已打补丁的归档后重建缺失元数据。
 
 <a id="applied-metadata"></a>
 
-## 已应用元数据
+## 补丁应用记录
 
 ```json
 {
@@ -204,7 +204,7 @@ Apply 可在验证已打补丁的归档后重建缺失元数据。
 ## 证据与限制
 
 - 历史 Blade 16 `1532:02E0` 试验抑制了启动/退出轨迹中观察到的 90 字节和 374 字节报告。
-  短的 System 上下文请求仍然存在。
+  以 System 身份发出的短请求仍然存在。
 - 用户报告在 Blade 不出现在列表中时，Pro Click V2 `1532:00D1` 的发现、普通输入和所要求的自定义检查均正常。
   这是用户报告的证据。
 - 共享本机/主机路由仍可访问。完整隔离、其他外设、睡眠/恢复，以及未来构建的硬件行为仍未验证。
@@ -213,7 +213,7 @@ Apply 可在验证已打补丁的归档后重建缺失元数据。
 `npm test` 运行纯源码的策略、兼容性和诊断检查。
 `npm run test:operations` 使用可丢弃的合成文件测试发现和可逆替换。
 运行 `npm run test:local` 前，将 `BLOCKER_PREPARATION_DIRECTORY` 设为本次新准备返回的目录；
-它会先验证准备内容匹配当前补丁源码，再使用不调用真实本机功能的模拟运行模块检查。
+测试会先验证准备内容与当前补丁源码匹配，再用不调用真实本机功能的模拟实现运行模块检查。
 绝不要提交生成的归档、提取的厂商代码或原始诊断采集文件。
 
 项目许可证仍由仓库所有者选择。本仓库不包含 Razer 组件，也不授予其许可证。
