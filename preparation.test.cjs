@@ -43,3 +43,21 @@ test('semantic preparation verification rejects planted archive and altered fixt
 });
 
 test('failed structural preparation produces a sanitized issue report and no patch output',t=>{const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'blocker-incompatible-'));t.after(()=>fs.rmSync(scratch,{recursive:true,force:true}));const source=path.join(scratch,'private-serial-source.asar'),exe=path.join(scratch,'RazerAppEngine.exe'),output=path.join(scratch,'output'),f=fixture();f['electron/main.js']=f['electron/main.js'].replace('"ffiPreload"','"changedRoute"');fs.writeFileSync(source,asar(f));fs.writeFileSync(exe,'inert executable');const before=fs.readFileSync(source);let failure;try{prepare(source,exe,output);}catch(error){failure=error;}assert(failure);const old=console.error;console.error=()=>{};let text;try{text=require('./failure-report.cjs').report({stage:'Build',error:failure,archive:source,executable:exe},path.join(scratch,'diagnostics'));}finally{console.error=old;}assert.match(text,/Anchor: ffiPreload/);assert.match(text,/Anchor matches: 0/);assert(!text.includes(scratch));assert(!text.includes('private-serial'));assert(!fs.existsSync(output));assert(fs.readFileSync(source).equals(before));assert.equal(fs.readdirSync(path.join(scratch,'diagnostics')).length,1);});
+
+test('generated archive and patch record include all five experimental OpenBlade identities', () => {
+ const built=transform(asar(fixture()));
+ const header=JSON.parse(built.result.subarray(16,16+built.result.readUInt32LE(12)));
+ const base=8+built.result.readUInt32LE(4);
+ function packed(name){let entry=header;for(const part of name.split('/'))entry=entry.files[part];return built.result.subarray(base+Number(entry.offset),base+Number(entry.offset)+entry.size);}
+ const registry=JSON.parse(packed('blade-device-registry.json'));
+ const module={exports:{}};
+ require('node:vm').runInNewContext(packed('openblade-device-exclusion.cjs').toString(),{module,require:name=>{assert.equal(name,'./blade-device-registry.json');return registry;}});
+ const policy=module.exports;
+ for(const productId of [0x029f,0x029d,0x02c5,0x0255,0x02a0]){
+  assert(built.report.bladeProductIds.includes(productId));
+  assert(registry.devices.some(d=>d.vendorId===0x1532&&d.productId===productId));
+  assert.equal(policy.blockedDevice({vendorId:0x1532,productId}),true);
+  assert.equal(policy.blockedDevice({vendorId:0x1234,productId}),false);
+ }
+ assert.equal(policy.blockedDevice({vendorId:0x1532,productId:0x00d1}),false);
+});

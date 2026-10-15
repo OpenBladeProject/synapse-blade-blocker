@@ -4,6 +4,20 @@ Keep Razer Synapse for your mouse, keyboard, and other peripherals while keeping
 
 The patch is experimental and reversible. It recognizes 40 reviewed Blade product IDs; physical testing covers a Blade 16 with a Pro Click V2 mouse. See the [tested configurations and limits](VALIDATION.md) for details. It does not provide security isolation.
 
+## Experimental OpenBlade models
+
+The existing exclusion policy includes all five experimental models supported by OpenBlade:
+
+| Laptop | Model | USB identity |
+| --- | --- | --- |
+| Blade 16 (2023) | RZ09-0483 | `1532:029F` |
+| Blade 14 (2023) | RZ09-0482 | `1532:029D` |
+| Blade 14 (2025) | RZ09-0530 | `1532:02C5` |
+| Blade 15 Base (Early 2020) | RZ09-0328 | `1532:0255` |
+| Blade 18 (2023) | RZ09-0484 | `1532:02A0` |
+
+These IDs are already in the reviewed registry, including in blocker 0.3.1. Use the same Patch steps below; no model selection is needed. Automated checks cover their exclusion paths. Physical blocker testing on these five models is still pending, and OpenBlade's [experimental support limits](https://github.com/OSSBlade/openblade-core/blob/main/docs/experimental-blade-support.md) still apply.
+
 ## Download
 
 Download the [latest release](https://github.com/OpenBladeProject/synapse-blade-blocker/releases/latest) and extract the ZIP.

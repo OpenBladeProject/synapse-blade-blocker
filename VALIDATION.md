@@ -1,5 +1,13 @@
 # Validation record
 
+## Experimental OpenBlade model coverage: 2026-10-15
+
+The five experimental profiles in [OpenBlade core at 779df44a](https://github.com/OSSBlade/openblade-core/blob/779df44a/src/OpenBlade.Protocol/ExperimentalBladeModels.cs) map RZ09-0483 to `1532:029F`, RZ09-0482 to `1532:029D`, RZ09-0530 to `1532:02C5`, RZ09-0328 to `1532:0255`, and RZ09-0484 to `1532:02A0`. All five IDs were already present in this repository's reviewed registry at `v0.3.1`; no policy, registry, patch output, or firmware support was added for this coverage update.
+
+Named source regressions now exercise each model's discovery filtering, HID paths and direct opens, native product URLs, mapping targets, and explicit or previously observed lifecycle targets. They retain other-vendor identities and peripheral access. A generated-archive regression also checks the embedded registry, executable policy, and preparation record for all five IDs. All 38 source tests passed, as did the scratch Apply/Restore suite under Windows PowerShell 5.1 and the PowerShell syntax checks.
+
+A fresh local preparation from installed AppEngine 4.0.827 verified all 10,059 untouched packed entries byte-for-byte. All 88 prepared-module tests passed with mocked native dependencies. The installed archive and executable hashes were unchanged after preparation. No installed Apply/Restore trial or physical test on these five laptops was performed; the earlier physical evidence below retains its original scope.
+
 ## Version-independent preparation: 2026-09-19
 
 September 19, 2026: dynamic discovery selected the installed AppEngine **4.0.823**. Preparation succeeded using its actual archive and executable without adding a supported-version entry or accepted hash. All 10,059 untouched packed entries were verified byte-for-byte. The original archive hash was `170d9fa0d146cd3f9a3d6d7d00a8c1fd221e1f85da34f7d385fe378d43d0c0af`, executable hash `dd18cb63ec4277a80800f78bfa700c03d01fc13a0a199de1e576bda76e1d3455`, and generated archive hash `77b9fe55076135b5344b3766b5e591a26ab9fe63ef0e637234924f4797cf56de`. These identify tested artifacts; no code gates compatibility on them.
