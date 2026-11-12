@@ -1,0 +1,139 @@
+{
+  "sourceUrl": "https://github.com/OpenBladeProject/openblade-core/blob/14da93e1cddca80b3fbbbf0d51e2a6add980608d/src/OpenBlade.Contracts/RazerBladeModelCatalog.cs",
+  "modelCount": 19,
+  "models": [
+    {
+      "modelNumber": "RZ09-0581",
+      "productName": "Razer Blade 16",
+      "modelYear": 2026,
+      "vendorId": 5426,
+      "productId": 736
+    },
+    {
+      "modelNumber": "RZ09-0528",
+      "productName": "Razer Blade 16",
+      "modelYear": 2025,
+      "vendorId": 5426,
+      "productId": 710
+    },
+    {
+      "modelNumber": "RZ09-0484",
+      "productName": "Razer Blade 18",
+      "modelYear": 2023,
+      "vendorId": 5426,
+      "productId": 672
+    },
+    {
+      "modelNumber": "RZ09-0483",
+      "productName": "Razer Blade 16",
+      "modelYear": 2023,
+      "vendorId": 5426,
+      "productId": 671
+    },
+    {
+      "modelNumber": "RZ09-0482",
+      "productName": "Razer Blade 14",
+      "modelYear": 2023,
+      "vendorId": 5426,
+      "productId": 669
+    },
+    {
+      "modelNumber": "RZ09-0530",
+      "productName": "Razer Blade 14",
+      "modelYear": 2025,
+      "vendorId": 5426,
+      "productId": 709
+    },
+    {
+      "modelNumber": "RZ09-0328",
+      "productName": "Razer Blade 15 Base",
+      "modelYear": 2020,
+      "vendorId": 5426,
+      "productId": 597
+    },
+    {
+      "modelNumber": "RZ09-0508",
+      "productName": "Razer Blade 14",
+      "modelYear": 2024,
+      "vendorId": 5426,
+      "productId": 694
+    },
+    {
+      "modelNumber": "RZ09-0510",
+      "productName": "Razer Blade 16",
+      "modelYear": 2024,
+      "vendorId": 5426,
+      "productId": 695
+    },
+    {
+      "modelNumber": "RZ09-0509",
+      "productName": "Razer Blade 18",
+      "modelYear": 2024,
+      "vendorId": 5426,
+      "productId": 696
+    },
+    {
+      "modelNumber": "RZ09-0529",
+      "productName": "Razer Blade 18",
+      "modelYear": 2025,
+      "vendorId": 5426,
+      "productId": 711
+    },
+    {
+      "modelNumber": "RZ09-0370",
+      "productName": "Razer Blade 14",
+      "modelYear": 2021,
+      "vendorId": 5426,
+      "productId": 624
+    },
+    {
+      "modelNumber": "RZ09-0427",
+      "productName": "Razer Blade 14",
+      "modelYear": 2022,
+      "vendorId": 5426,
+      "productId": 652
+    },
+    {
+      "modelNumber": "RZ09-0421",
+      "productName": "Razer Blade 15",
+      "modelYear": 2022,
+      "vendorId": 5426,
+      "productId": 650
+    },
+    {
+      "modelNumber": "RZ09-0423",
+      "productName": "Razer Blade 17",
+      "modelYear": 2022,
+      "vendorId": 5426,
+      "productId": 651
+    },
+    {
+      "modelNumber": "RZ09-0330",
+      "productName": "Razer Blade 15 Advanced",
+      "modelYear": 2020,
+      "vendorId": 5426,
+      "productId": 595
+    },
+    {
+      "modelNumber": "RZ09-0351",
+      "productName": "Razer Blade 15 Base",
+      "modelYear": 2020,
+      "vendorId": 5426,
+      "productId": 616
+    },
+    {
+      "modelNumber": "RZ09-0301",
+      "productName": "Razer Blade 15 Advanced",
+      "modelYear": 2019,
+      "vendorId": 5426,
+      "productId": 581
+    },
+    {
+      "modelNumber": "RZ09-0300",
+      "productName": "Razer Blade 15 Base",
+      "modelYear": 2019,
+      "vendorId": 5426,
+      "productId": 582
+    }
+  ]
+}

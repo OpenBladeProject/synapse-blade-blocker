@@ -6,19 +6,34 @@ Keep Razer Synapse for your mouse, keyboard, and other peripherals while keeping
 
 The patch is experimental and reversible. It recognizes 40 reviewed Blade product IDs; physical testing covers a Blade 16 with a Pro Click V2 mouse. See the [tested configurations and limits](VALIDATION.md) for details. It does not provide security isolation.
 
-## Experimental OpenBlade models
+<a id="experimental-openblade-models"></a>
+## OpenBlade models
 
-The existing exclusion policy includes all five experimental models supported by OpenBlade:
+The exclusion policy covers all 19 models in the [OpenBlade core catalog](https://github.com/OpenBladeProject/openblade-core/blob/14da93e1cddca80b3fbbbf0d51e2a6add980608d/src/OpenBlade.Contracts/RazerBladeModelCatalog.cs):
 
 | Laptop | Model | USB identity |
 | --- | --- | --- |
+| Blade 16 (2026) | RZ09-0581 | `1532:02E0` |
+| Blade 16 (2025) | RZ09-0528 | `1532:02C6` |
+| Blade 18 (2023) | RZ09-0484 | `1532:02A0` |
 | Blade 16 (2023) | RZ09-0483 | `1532:029F` |
 | Blade 14 (2023) | RZ09-0482 | `1532:029D` |
 | Blade 14 (2025) | RZ09-0530 | `1532:02C5` |
-| Blade 15 Base (Early 2020) | RZ09-0328 | `1532:0255` |
-| Blade 18 (2023) | RZ09-0484 | `1532:02A0` |
+| Blade 15 Base (2020) | RZ09-0328 | `1532:0255` |
+| Blade 14 (2024) | RZ09-0508 | `1532:02B6` |
+| Blade 16 (2024) | RZ09-0510 | `1532:02B7` |
+| Blade 18 (2024) | RZ09-0509 | `1532:02B8` |
+| Blade 18 (2025) | RZ09-0529 | `1532:02C7` |
+| Blade 14 (2021) | RZ09-0370 | `1532:0270` |
+| Blade 14 (2022) | RZ09-0427 | `1532:028C` |
+| Blade 15 (2022) | RZ09-0421 | `1532:028A` |
+| Blade 17 (2022) | RZ09-0423 | `1532:028B` |
+| Blade 15 Advanced (2020) | RZ09-0330 | `1532:0253` |
+| Blade 15 Base (2020) | RZ09-0351 | `1532:0268` |
+| Blade 15 Advanced (2019) | RZ09-0301 | `1532:0245` |
+| Blade 15 Base (2019) | RZ09-0300 | `1532:0246` |
 
-These IDs are already in the reviewed registry, including in blocker 0.3.1. Use the same Patch steps below; no model selection is needed. Automated checks cover their exclusion paths. Physical blocker testing on these five models is still pending, and OpenBlade's [experimental support limits](https://github.com/OSSBlade/openblade-core/blob/main/docs/experimental-blade-support.md) still apply.
+Blocker 0.3.1 already includes all 19 IDs. Follow the Patch steps below; you do not need to select a model. Automated tests cover each model's exclusion paths. Hardware testing of the blocker covers only the Blade 16 RZ09-0581. For OpenBlade's supported controls and testing status, see [source-reviewed support](https://github.com/OpenBladeProject/openblade-core/blob/main/docs/experimental-blade-support.md).
 
 ## Download
 

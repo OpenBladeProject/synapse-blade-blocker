@@ -10,15 +10,32 @@ test('other vendors are never matched by product ID alone',()=>assert.equal(poli
 test('Blade sender is denied before native forwarding',()=>assert.throws(()=>native.assertAllowed('electronAction',{senderFrame:{url:'https://apps.razer.com/synapse/products/736/ui/'}},{action:'StartService'}),e=>e.code==='OPENBLADE_NATIVE_DEVICE_EXCLUDED'));
 test('mouse and shared native routes remain available',()=>{for(const url of ['https://apps.razer.com/synapse/products/209/ui/','https://apps.razer.com/background-manager/'])assert.doesNotThrow(()=>native.assertAllowed('electronAction',{senderFrame:{url}},{action:'StartService'}))});
 
-// These are OpenBlade's exact experimental profiles, not additional PID guesses.
-const experimentalModels = [
-  ['RZ09-0483', 0x029f],
-  ['RZ09-0482', 0x029d],
-  ['RZ09-0530', 0x02c5],
-  ['RZ09-0328', 0x0255],
-  ['RZ09-0484', 0x02a0]
-];
-for (const [model, productId] of experimentalModels) {
+// Offline snapshot of every officially supported model in the pinned core catalog.
+const coreCatalog = require('./fixtures/openblade-models.json');
+test('pinned OpenBlade catalog has complete reviewed registry and guide coverage', () => {
+  assert(Number.isInteger(coreCatalog.modelCount) && coreCatalog.modelCount > 0);
+  assert.equal(coreCatalog.models.length, coreCatalog.modelCount);
+  assert.equal(new Set(coreCatalog.models.map(m => m.modelNumber)).size, coreCatalog.models.length);
+  assert.equal(new Set(coreCatalog.models.map(m => m.vendorId + ':' + m.productId)).size, coreCatalog.models.length);
+  const expectedRows = coreCatalog.models.map(({modelNumber, productName, modelYear, vendorId, productId}) => {
+    assert.equal(vendorId, 0x1532);
+    assert(registry.devices.some(d => d.vendorId === vendorId && d.productId === productId), modelNumber);
+    const identity = '1532:' + productId.toString(16).padStart(4, '0').toUpperCase();
+    return [productName.replace(/^Razer /, '') + ' (' + modelYear + ')', modelNumber, '`' + identity + '`'].join(' | ');
+  }).sort();
+  for (const guide of ['README.md', 'README.ru-RU.md', 'README.zh-CN.md',
+    'VALIDATION.md', 'docs/ru-RU/VALIDATION.md', 'docs/zh-CN/VALIDATION.md']) {
+    const text = fs.readFileSync(__dirname + '/' + guide, 'utf8');
+    assert(text.includes('](' + coreCatalog.sourceUrl + ')'), guide + ': pinned catalog link');
+    if (!guide.startsWith('README')) continue;
+    const tables = text.split(/\r?\n\s*\r?\n/).filter(block => block.startsWith('|') && block.includes('RZ09-'));
+    assert.equal(tables.length, 1, guide + ': model table');
+    const rows = tables[0].trim().split(/\r?\n/).slice(2).map(row =>
+      row.split('|').slice(1, -1).map(cell => cell.trim()).join(' | ')).sort();
+    assert.deepEqual(rows, expectedRows, guide + ': full model rows');
+  }
+});
+for (const {modelNumber: model, productId} of coreCatalog.models) {
   test(`${model}: discovery, HID paths and direct opens exclude the laptop only`, () => {
     const hex = productId.toString(16).padStart(4, '0');
     const blade = {vendorId: 0x1532, productId};

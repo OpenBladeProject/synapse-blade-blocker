@@ -9,19 +9,33 @@
 此补丁仍处于实验阶段，可以还原。它能识别 40 个经过审查的 Blade 产品 ID；实际测试使用的是一台 Blade 16 和一个 Pro Click V2 鼠标。详情见[已测试的配置和限制](docs/zh-CN/VALIDATION.md)。此补丁不提供安全隔离。
 
 <a id="experimental-openblade-models"></a>
-## OpenBlade 实验型号
+## OpenBlade 型号
 
-现有排除策略包含 OpenBlade 支持的五个实验型号：
+排除策略覆盖 [OpenBlade 核心型号目录](https://github.com/OpenBladeProject/openblade-core/blob/14da93e1cddca80b3fbbbf0d51e2a6add980608d/src/OpenBlade.Contracts/RazerBladeModelCatalog.cs)中的全部 19 款型号：
 
 | 笔记本电脑 | 型号 | USB 标识 |
 | --- | --- | --- |
+| Blade 16 (2026) | RZ09-0581 | `1532:02E0` |
+| Blade 16 (2025) | RZ09-0528 | `1532:02C6` |
+| Blade 18 (2023) | RZ09-0484 | `1532:02A0` |
 | Blade 16 (2023) | RZ09-0483 | `1532:029F` |
 | Blade 14 (2023) | RZ09-0482 | `1532:029D` |
 | Blade 14 (2025) | RZ09-0530 | `1532:02C5` |
-| Blade 15 Base (Early 2020) | RZ09-0328 | `1532:0255` |
-| Blade 18 (2023) | RZ09-0484 | `1532:02A0` |
+| Blade 15 Base (2020) | RZ09-0328 | `1532:0255` |
+| Blade 14 (2024) | RZ09-0508 | `1532:02B6` |
+| Blade 16 (2024) | RZ09-0510 | `1532:02B7` |
+| Blade 18 (2024) | RZ09-0509 | `1532:02B8` |
+| Blade 18 (2025) | RZ09-0529 | `1532:02C7` |
+| Blade 14 (2021) | RZ09-0370 | `1532:0270` |
+| Blade 14 (2022) | RZ09-0427 | `1532:028C` |
+| Blade 15 (2022) | RZ09-0421 | `1532:028A` |
+| Blade 17 (2022) | RZ09-0423 | `1532:028B` |
+| Blade 15 Advanced (2020) | RZ09-0330 | `1532:0253` |
+| Blade 15 Base (2020) | RZ09-0351 | `1532:0268` |
+| Blade 15 Advanced (2019) | RZ09-0301 | `1532:0245` |
+| Blade 15 Base (2019) | RZ09-0300 | `1532:0246` |
 
-这些 ID 已列入经过审查的注册表，Synapse Blade Blocker 0.3.1 已包含它们。按下文的 **Patch** 步骤操作即可，无需选择型号。自动化检查覆盖了这些型号的排除路径。尚未在这五款笔记本上实机测试 Blocker；OpenBlade 的[实验支持限制](https://github.com/OpenBladeProject/openblade-core/blob/main/docs/zh-CN/experimental-blade-support.md)仍然适用。
+Blocker 0.3.1 已包含全部 19 个 ID。按下文的 **Patch** 步骤操作即可，无需选择型号。自动化测试覆盖每款型号的排除路径。Blocker 目前仅在 Blade 16 RZ09-0581 上通过实机测试。OpenBlade 支持哪些功能、各型号经过哪些验证，见[基于源码审查的支持说明](https://github.com/OpenBladeProject/openblade-core/blob/main/docs/zh-CN/experimental-blade-support.md)。
 
 <a id="download"></a>
 ## 下载

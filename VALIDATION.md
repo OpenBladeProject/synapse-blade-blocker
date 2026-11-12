@@ -2,6 +2,14 @@
 
 English | [简体中文](docs/zh-CN/VALIDATION.md) | [Русский](docs/ru-RU/VALIDATION.md)
 
+## All supported OpenBlade models: 2026-11-11
+
+The [pinned core catalog](https://github.com/OpenBladeProject/openblade-core/blob/14da93e1cddca80b3fbbbf0d51e2a6add980608d/src/OpenBlade.Contracts/RazerBladeModelCatalog.cs) contains 19 officially supported models: two physically validated profiles and 17 source-reviewed profiles. All 19 USB identities already exist in the blocker's 40-device reviewed registry. This update expands named regressions and documentation; the registry, runtime policy and generated patch bytes remain unchanged from 0.3.1.
+
+Tests use [fixtures/openblade-models.json](fixtures/openblade-models.json) to check discovery filtering, HID paths, direct opens, native product URLs, mapping and lifecycle callbacks for every model. A generated-archive test checks the saved preparation metadata and embedded registry and policy. The tables in all three READMEs must match this fixture. When core adds a model, refresh the fixture, including its model count and source URL, from an immutable core catalog revision. Check the identity against the registry, then update the tables, model counts and catalog links in all six guides.
+
+All 67 source tests, scratch Apply/Restore tests under Windows PowerShell 5.1, and PowerShell syntax checks passed. Fresh preparation from installed AppEngine 4.0.827 verified all 10,059 untouched packed entries byte-for-byte; all 88 prepared-module tests passed with mocked native dependencies. The installed archive and executable hashes remained unchanged. This run did not apply or restore a patch on installed Synapse or test another laptop. The RZ09-0581 trial below remains the blocker's only hardware test.
+
 ## Experimental OpenBlade model coverage: 2026-10-15
 
 The five experimental profiles in [OpenBlade core at 779df44a](https://github.com/OSSBlade/openblade-core/blob/779df44a/src/OpenBlade.Protocol/ExperimentalBladeModels.cs) map RZ09-0483 to `1532:029F`, RZ09-0482 to `1532:029D`, RZ09-0530 to `1532:02C5`, RZ09-0328 to `1532:0255`, and RZ09-0484 to `1532:02A0`. All five IDs were already present in this repository's reviewed registry at `v0.3.1`; no policy, registry, patch output, or firmware support was added for this coverage update.

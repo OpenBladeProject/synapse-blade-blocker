@@ -4,6 +4,14 @@
 
 [English](../../VALIDATION.md) | 简体中文 | [Русский](../ru-RU/VALIDATION.md)
 
+## OpenBlade 全部受支持型号：2026-11-11
+
+[固定版本的核心目录](https://github.com/OpenBladeProject/openblade-core/blob/14da93e1cddca80b3fbbbf0d51e2a6add980608d/src/OpenBlade.Contracts/RazerBladeModelCatalog.cs)包含 19 款正式支持的型号：其中 2 款已有实机验证，17 款基于源码审查提供支持。全部 19 个 USB 标识都已存在于 Blocker 的 40 款设备审核清单中。此次更新扩展了回归测试和文档；注册表、运行时策略和生成的补丁字节与 0.3.1 相同。
+
+测试使用 [fixtures/openblade-models.json](../../fixtures/openblade-models.json) 检查每款型号的发现过滤、HID 路径、直接打开、产品 URL、映射和生命周期回调。生成归档测试还检查保存的准备元数据，以及嵌入的注册表和策略。三份 README 的型号表必须与快照一致。核心新增型号时，应从固定的核心目录修订版更新快照，包括型号数量和来源 URL。核对注册表中的标识，再同步更新六份指南中的型号表、型号数量和目录链接。
+
+67 项源码测试、Windows PowerShell 5.1 下的临时 Apply/Restore 测试及 PowerShell 语法检查均通过。使用已安装的 AppEngine 4.0.827 重新准备补丁时，逐字节验证了全部 10,059 个未修改的打包条目；使用模拟本机依赖的 88 项准备模块测试全部通过。已安装归档和可执行文件的哈希未改变。本次未在已安装的 Synapse 上应用或还原补丁，也未测试其他笔记本。下文的 RZ09-0581 测试仍是 Blocker 唯一的实机测试记录。
+
 <a id="experimental-openblade-model-coverage-2026-10-15"></a>
 
 ## OpenBlade 实验性型号覆盖：2026-10-15
