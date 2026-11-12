@@ -1,5 +1,6 @@
 {
   "sourceUrl": "https://github.com/OpenBladeProject/openblade-core/blob/14da93e1cddca80b3fbbbf0d51e2a6add980608d/src/OpenBlade.Contracts/RazerBladeModelCatalog.cs",
+  "modelCount": 19,
   "models": [
     {
       "modelNumber": "RZ09-0581",

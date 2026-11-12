@@ -13,16 +13,26 @@ test('mouse and shared native routes remain available',()=>{for(const url of ['h
 // Offline snapshot of every officially supported model in the pinned core catalog.
 const coreCatalog = require('./fixtures/openblade-models.json');
 test('pinned OpenBlade catalog has complete reviewed registry and guide coverage', () => {
-  assert.equal(coreCatalog.models.length, 19);
-  assert.equal(new Set(coreCatalog.models.map(m => m.modelNumber)).size, 19);
-  assert.equal(new Set(coreCatalog.models.map(m => m.vendorId + ':' + m.productId)).size, 19);
-  for (const {modelNumber, vendorId, productId} of coreCatalog.models) {
+  assert(Number.isInteger(coreCatalog.modelCount) && coreCatalog.modelCount > 0);
+  assert.equal(coreCatalog.models.length, coreCatalog.modelCount);
+  assert.equal(new Set(coreCatalog.models.map(m => m.modelNumber)).size, coreCatalog.models.length);
+  assert.equal(new Set(coreCatalog.models.map(m => m.vendorId + ':' + m.productId)).size, coreCatalog.models.length);
+  const expectedRows = coreCatalog.models.map(({modelNumber, productName, modelYear, vendorId, productId}) => {
     assert.equal(vendorId, 0x1532);
     assert(registry.devices.some(d => d.vendorId === vendorId && d.productId === productId), modelNumber);
-    for (const guide of ['README.md', 'README.ru-RU.md', 'README.zh-CN.md']) {
-      const identity = '1532:' + productId.toString(16).padStart(4, '0').toUpperCase();
-      assert(fs.readFileSync(__dirname + '/' + guide, 'utf8').includes('| ' + modelNumber + ' | `' + identity + '` |'), guide + ': ' + modelNumber);
-    }
+    const identity = '1532:' + productId.toString(16).padStart(4, '0').toUpperCase();
+    return [productName.replace(/^Razer /, '') + ' (' + modelYear + ')', modelNumber, '`' + identity + '`'].join(' | ');
+  }).sort();
+  for (const guide of ['README.md', 'README.ru-RU.md', 'README.zh-CN.md',
+    'VALIDATION.md', 'docs/ru-RU/VALIDATION.md', 'docs/zh-CN/VALIDATION.md']) {
+    const text = fs.readFileSync(__dirname + '/' + guide, 'utf8');
+    assert(text.includes('](' + coreCatalog.sourceUrl + ')'), guide + ': pinned catalog link');
+    if (!guide.startsWith('README')) continue;
+    const tables = text.split(/\r?\n\s*\r?\n/).filter(block => block.startsWith('|') && block.includes('RZ09-'));
+    assert.equal(tables.length, 1, guide + ': model table');
+    const rows = tables[0].trim().split(/\r?\n/).slice(2).map(row =>
+      row.split('|').slice(1, -1).map(cell => cell.trim()).join(' | ')).sort();
+    assert.deepEqual(rows, expectedRows, guide + ': full model rows');
   }
 });
 for (const {modelNumber: model, productId} of coreCatalog.models) {
