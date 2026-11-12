@@ -10,15 +10,22 @@ test('other vendors are never matched by product ID alone',()=>assert.equal(poli
 test('Blade sender is denied before native forwarding',()=>assert.throws(()=>native.assertAllowed('electronAction',{senderFrame:{url:'https://apps.razer.com/synapse/products/736/ui/'}},{action:'StartService'}),e=>e.code==='OPENBLADE_NATIVE_DEVICE_EXCLUDED'));
 test('mouse and shared native routes remain available',()=>{for(const url of ['https://apps.razer.com/synapse/products/209/ui/','https://apps.razer.com/background-manager/'])assert.doesNotThrow(()=>native.assertAllowed('electronAction',{senderFrame:{url}},{action:'StartService'}))});
 
-// These are OpenBlade's exact experimental profiles, not additional PID guesses.
-const experimentalModels = [
-  ['RZ09-0483', 0x029f],
-  ['RZ09-0482', 0x029d],
-  ['RZ09-0530', 0x02c5],
-  ['RZ09-0328', 0x0255],
-  ['RZ09-0484', 0x02a0]
-];
-for (const [model, productId] of experimentalModels) {
+// Offline snapshot of every officially supported model in the pinned core catalog.
+const coreCatalog = require('./fixtures/openblade-models.json');
+test('pinned OpenBlade catalog has complete reviewed registry and guide coverage', () => {
+  assert.equal(coreCatalog.models.length, 19);
+  assert.equal(new Set(coreCatalog.models.map(m => m.modelNumber)).size, 19);
+  assert.equal(new Set(coreCatalog.models.map(m => m.vendorId + ':' + m.productId)).size, 19);
+  for (const {modelNumber, vendorId, productId} of coreCatalog.models) {
+    assert.equal(vendorId, 0x1532);
+    assert(registry.devices.some(d => d.vendorId === vendorId && d.productId === productId), modelNumber);
+    for (const guide of ['README.md', 'README.ru-RU.md', 'README.zh-CN.md']) {
+      const identity = '1532:' + productId.toString(16).padStart(4, '0').toUpperCase();
+      assert(fs.readFileSync(__dirname + '/' + guide, 'utf8').includes('| ' + modelNumber + ' | `' + identity + '` |'), guide + ': ' + modelNumber);
+    }
+  }
+});
+for (const {modelNumber: model, productId} of coreCatalog.models) {
   test(`${model}: discovery, HID paths and direct opens exclude the laptop only`, () => {
     const hex = productId.toString(16).padStart(4, '0');
     const blade = {vendorId: 0x1532, productId};
