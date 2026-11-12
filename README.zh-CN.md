@@ -35,7 +35,7 @@
 | Blade 15 Advanced (2019) | RZ09-0301 | `1532:0245` |
 | Blade 15 Base (2019) | RZ09-0300 | `1532:0246` |
 
-Blocker 0.3.1 已包含全部 19 个 ID。按下文的 **Patch** 步骤操作即可，无需选择型号。自动化检查覆盖每款型号的排除路径。Blocker 的实机测试使用的是 Blade 16 RZ09-0581；其余型号尚未实机测试。OpenBlade 本身的功能范围和验证状态见[基于源码审查的支持说明](https://github.com/OpenBladeProject/openblade-core/blob/main/docs/zh-CN/experimental-blade-support.md)。
+Blocker 0.3.1 已包含全部 19 个 ID。按下文的 **Patch** 步骤操作即可，无需选择型号。自动化测试覆盖每款型号的排除路径。Blocker 目前仅在 Blade 16 RZ09-0581 上通过实机测试。OpenBlade 支持哪些功能、各型号经过哪些验证，见[基于源码审查的支持说明](https://github.com/OpenBladeProject/openblade-core/blob/main/docs/zh-CN/experimental-blade-support.md)。
 
 <a id="download"></a>
 ## 下载

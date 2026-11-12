@@ -33,7 +33,7 @@ The exclusion policy covers all 19 models in the [OpenBlade core catalog](https:
 | Blade 15 Advanced (2019) | RZ09-0301 | `1532:0245` |
 | Blade 15 Base (2019) | RZ09-0300 | `1532:0246` |
 
-All 19 IDs are already included in blocker 0.3.1. Use the same Patch steps below; no model selection is needed. Automated checks cover each model's exclusion paths. Physical blocker testing covers the Blade 16 RZ09-0581; the other models remain untested on hardware. See [OpenBlade's source-reviewed support](https://github.com/OpenBladeProject/openblade-core/blob/main/docs/experimental-blade-support.md) for its separate feature and validation status.
+Blocker 0.3.1 already includes all 19 IDs. Follow the Patch steps below; you do not need to select a model. Automated tests cover each model's exclusion paths. Hardware testing of the blocker covers only the Blade 16 RZ09-0581. For OpenBlade's supported controls and testing status, see [source-reviewed support](https://github.com/OpenBladeProject/openblade-core/blob/main/docs/experimental-blade-support.md).
 
 ## Download
 
